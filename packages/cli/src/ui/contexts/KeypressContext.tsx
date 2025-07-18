@@ -33,6 +33,11 @@ const ESC = '\u001B';
 export const PASTE_MODE_PREFIX = `${ESC}[200~`;
 export const PASTE_MODE_SUFFIX = `${ESC}[201~`;
 
+const CTRL_BACKSPACE_SEQUENCES = {
+  win32: '\x7f',
+  default: '\x08',
+} as const;
+
 export interface Key {
   name: string;
   ctrl: boolean;
@@ -67,10 +72,12 @@ export function useKeypressContext() {
 export function KeypressProvider({
   children,
   kittyProtocolEnabled,
+  ctrlBackspaceModeFix,
   config,
 }: {
   children: React.ReactNode;
   kittyProtocolEnabled: boolean;
+  ctrlBackspaceModeFix?: boolean;
   config?: Config;
 }) {
   const { stdin, setRawMode } = useStdin();
@@ -304,6 +311,19 @@ export function KeypressProvider({
       if (key.name === 'return' && key.sequence === `${ESC}\r`) {
         key.meta = true;
       }
+
+      // readline doesn't set the ctrl flag for byte sequences x7f and x08
+      // so we need to set it up manually for non-kitty terminals
+      if (key.name === 'backspace' && !key.ctrl && ctrlBackspaceModeFix) {
+        const expectedSequence =
+          process.platform === 'win32'
+            ? CTRL_BACKSPACE_SEQUENCES.win32
+            : CTRL_BACKSPACE_SEQUENCES.default;
+        if (key.sequence === expectedSequence) {
+          key.ctrl = true;
+        }
+      }
+
       broadcast({ ...key, paste: isPaste });
     };
 
@@ -381,7 +401,7 @@ export function KeypressProvider({
         stdin.removeListener('keypress', handleKeypress);
       }
 
-      rl.close();
+      rl?.close();
 
       // Restore the terminal to its original state.
       setRawMode(false);
@@ -404,7 +424,14 @@ export function KeypressProvider({
         pasteBuffer = Buffer.alloc(0);
       }
     };
-  }, [stdin, setRawMode, kittyProtocolEnabled, config, subscribers]);
+  }, [
+    stdin,
+    setRawMode,
+    kittyProtocolEnabled,
+    ctrlBackspaceModeFix,
+    config,
+    subscribers,
+  ]);
 
   return (
     <KeypressContext.Provider value={{ subscribe, unsubscribe }}>

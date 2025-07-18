@@ -563,6 +563,16 @@ export const SETTINGS_SCHEMA = {
       'Enable AI-powered prompt completion suggestions while typing.',
     showInDialog: true,
   },
+  ctrlBackspaceModeFix: {
+    type: 'boolean',
+    label: 'Ctrl+Backspace mode fix',
+    category: 'General',
+    requiresRestart: true,
+    default: false,
+    description:
+      'Enable fix for Ctrl+Backspace functionality on non-kitty terminals',
+    showInDialog: false,
+  },
 } as const;
 
 type InferSettings<T extends SettingsSchema> = {

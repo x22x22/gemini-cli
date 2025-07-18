@@ -320,6 +320,7 @@ If you are experiencing performance issues with file searching (e.g., with `@` c
     "showLineNumbers": false
     ```
 
+<<<<<<< HEAD
 - **`accessibility`** (object):
   - **Description:** Configures accessibility features for the CLI.
   - **Properties:**
@@ -332,6 +333,14 @@ If you are experiencing performance issues with file searching (e.g., with `@` c
       "screenReader": true,
       "disableLoadingPhrases": true
     }
+=======
+- **`ctrlBackspaceModeFix`** (boolean):
+  - **Description:** Enables a fix for `Ctrl+Backspace` functionality in the CLI prompt. This is useful if you are experiencing issues with word deletion in your terminal.
+  - **Default:** `false`
+  - **Example:**
+    ```json
+    "ctrlBackspaceModeFix": true
+>>>>>>> 55593428 (fix(cli): add configurable Ctrl+Backspace word deletion for non-kitty terminals)
     ```
 
 ### Example `settings.json`:

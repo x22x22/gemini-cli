@@ -119,6 +119,7 @@ export const AppWrapper = (props: AppProps) => {
     <KeypressProvider
       kittyProtocolEnabled={kittyProtocolStatus.enabled}
       config={props.config}
+      ctrlBackspaceModeFix={props.settings.merged.ctrlBackspaceModeFix}
     >
       <SessionStatsProvider>
         <VimModeProvider settings={props.settings}>
