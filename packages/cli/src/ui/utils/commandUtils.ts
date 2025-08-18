@@ -29,22 +29,61 @@ export const isSlashCommand = (query: string): boolean => query.startsWith('/');
 
 // Copies a string snippet to the clipboard for different platforms
 export const copyToClipboard = async (text: string): Promise<void> => {
-  const run = (cmd: string, args: string[]) =>
+  const run = (
+    cmd: string,
+    args: string[],
+    options?: { detachedTimeout?: number },
+  ) =>
     new Promise<void>((resolve, reject) => {
       const child = spawn(cmd, args);
       let stderr = '';
-      child.stderr.on('data', (chunk) => (stderr += chunk.toString()));
-      child.on('error', reject);
-      child.on('close', (code) => {
-        if (code === 0) return resolve();
-        const errorMsg = stderr.trim();
-        reject(
-          new Error(
-            `'${cmd}' exited with code ${code}${errorMsg ? `: ${errorMsg}` : ''}`,
-          ),
-        );
+      let settled = false;
+      let timeout: NodeJS.Timeout | undefined;
+
+      // If a timeout is provided, race the process's close event against it.
+      // This is for Linux clipboard tools that fork to the background.
+      if (options?.detachedTimeout) {
+        timeout = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          // Process didn't exit, so we assume success and detach.
+          child.unref();
+          resolve();
+        }, options.detachedTimeout);
+      }
+
+      child.on('error', (err) => {
+        if (settled) return;
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        reject(err);
       });
-      child.stdin.on('error', reject);
+
+      child.stderr.on('data', (chunk) => {
+        stderr += chunk.toString();
+      });
+
+      child.on('close', (code) => {
+        if (settled) return;
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        if (code === 0) {
+          resolve();
+        } else {
+          const errorMsg = stderr.trim();
+          reject(
+            new Error(
+              `'${cmd}' exited with code ${code}${
+                errorMsg ? `: ${errorMsg}` : ''
+              }`,
+            ),
+          );
+        }
+      });
+
+      // Consume stdout/stdin to prevent blocking issues.
+      child.stdout.on('data', () => {});
+      child.stdin.on('error', () => {});
       child.stdin.write(text);
       child.stdin.end();
     });
@@ -56,11 +95,15 @@ export const copyToClipboard = async (text: string): Promise<void> => {
       return run('pbcopy', []);
     case 'linux':
       try {
-        await run('xclip', ['-selection', 'clipboard']);
+        await run('xclip', ['-selection', 'clipboard'], {
+          detachedTimeout: 250,
+        });
       } catch (primaryError) {
         try {
           // If xclip fails for any reason, try xsel as a fallback.
-          await run('xsel', ['--clipboard', '--input']);
+          await run('xsel', ['--clipboard', '--input'], {
+            detachedTimeout: 250,
+          });
         } catch (fallbackError) {
           const primaryMsg =
             primaryError instanceof Error
