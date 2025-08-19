@@ -40,6 +40,13 @@ export const copyToClipboard = async (text: string): Promise<void> => {
       let settled = false;
       let timeout: NodeJS.Timeout | undefined;
 
+      const handleError = (err: Error) => {
+        if (settled) return;
+        settled = true;
+        if (timeout) clearTimeout(timeout);
+        reject(err);
+      };
+
       // If a timeout is provided, race the process's close event against it.
       // This is for Linux clipboard tools that fork to the background.
       if (options?.detachedTimeout) {
@@ -52,12 +59,7 @@ export const copyToClipboard = async (text: string): Promise<void> => {
         }, options.detachedTimeout);
       }
 
-      child.on('error', (err) => {
-        if (settled) return;
-        settled = true;
-        if (timeout) clearTimeout(timeout);
-        reject(err);
-      });
+      child.on('error', handleError);
 
       child.stderr.on('data', (chunk) => {
         stderr += chunk.toString();
@@ -83,7 +85,7 @@ export const copyToClipboard = async (text: string): Promise<void> => {
 
       // Consume stdout/stdin to prevent blocking issues.
       child.stdout.on('data', () => {});
-      child.stdin.on('error', () => {});
+      child.stdin.on('error', handleError);
       child.stdin.write(text);
       child.stdin.end();
     });
@@ -96,13 +98,13 @@ export const copyToClipboard = async (text: string): Promise<void> => {
     case 'linux':
       try {
         await run('xclip', ['-selection', 'clipboard'], {
-          detachedTimeout: 250,
+          detachedTimeout: 1000,
         });
       } catch (primaryError) {
         try {
           // If xclip fails for any reason, try xsel as a fallback.
           await run('xsel', ['--clipboard', '--input'], {
-            detachedTimeout: 250,
+            detachedTimeout: 1000,
           });
         } catch (fallbackError) {
           const primaryMsg =
