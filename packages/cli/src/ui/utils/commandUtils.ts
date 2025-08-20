@@ -55,7 +55,11 @@ export const copyToClipboard = async (text: string): Promise<void> => {
       }
     });
 
-  const linuxOptions: SpawnOptions = { stdio: ['pipe', 'inherit', 'inherit'] };
+  // Configure stdio for Linux clipboard commands.
+  // - stdin: 'pipe' to write the text that needs to be copied.
+  // - stdout: 'inherit' since we don't need to capture the command's output on success.
+  // - stderr: 'pipe' to capture error messages (e.g., "command not found") for better error handling.
+  const linuxOptions: SpawnOptions = { stdio: ['pipe', 'inherit', 'pipe'] };
 
   switch (process.platform) {
     case 'win32':

@@ -187,7 +187,7 @@ describe('commandUtils', () => {
       it('should successfully copy text to clipboard using xclip', async () => {
         const testText = 'Hello, world!';
         const linuxOptions: SpawnOptions = {
-          stdio: ['pipe', 'inherit', 'inherit'],
+          stdio: ['pipe', 'inherit', 'pipe'],
         };
 
         setTimeout(() => {
@@ -209,7 +209,7 @@ describe('commandUtils', () => {
         const testText = 'Hello, world!';
         let callCount = 0;
         const linuxOptions: SpawnOptions = {
-          stdio: ['pipe', 'inherit', 'inherit'],
+          stdio: ['pipe', 'inherit', 'pipe'],
         };
 
         mockSpawn.mockImplementation(() => {
