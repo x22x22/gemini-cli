@@ -162,6 +162,9 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
         getIdeClient: vi.fn(() => ({
           getCurrentIde: vi.fn(() => 'vscode'),
           getDetectedIdeDisplayName: vi.fn(() => 'VSCode'),
+          addStatusChangeListener: vi.fn(),
+          removeStatusChangeListener: vi.fn(),
+          getConnectionStatus: vi.fn(() => 'connected'),
         })),
         isTrustedFolder: vi.fn(() => true),
       };
@@ -275,6 +278,7 @@ describe('App UI', () => {
       user?: Partial<Settings>;
       workspace?: Partial<Settings>;
     } = {},
+    isTrusted = true,
   ): LoadedSettings => {
     const systemSettingsFile: SettingsFile = {
       path: '/system/settings.json',
@@ -293,6 +297,7 @@ describe('App UI', () => {
       userSettingsFile,
       workspaceSettingsFile,
       [],
+      isTrusted,
     );
   };
 
@@ -374,9 +379,9 @@ describe('App UI', () => {
       const { unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -400,9 +405,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -430,9 +435,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -460,9 +465,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -494,9 +499,9 @@ describe('App UI', () => {
       const { unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -523,9 +528,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -542,9 +547,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -578,9 +583,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -606,9 +611,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -627,9 +632,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve(); // Wait for any async updates
@@ -648,9 +653,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -669,9 +674,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -696,9 +701,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -721,9 +726,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -742,9 +747,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -766,9 +771,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -788,9 +793,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -801,9 +806,9 @@ describe('App UI', () => {
     const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -811,18 +816,21 @@ describe('App UI', () => {
   });
 
   it('should not display Tips component when hideTips is true', async () => {
-    mockSettings = createMockSettings({
-      workspace: {
-        hideTips: true,
+    mockSettings = createMockSettings(
+      {
+        workspace: {
+          hideTips: true,
+        },
       },
-    });
+      true,
+    );
 
     const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -834,9 +842,9 @@ describe('App UI', () => {
     const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -852,13 +860,65 @@ describe('App UI', () => {
     const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
+        version={mockVersion}
+      />,
+      mockSettings,
+    );
+    currentUnmount = unmount;
+    await Promise.resolve();
+    expect(vi.mocked(Header)).not.toHaveBeenCalled();
+  });
+
+  it('should display Footer component by default', async () => {
+    const { lastFrame, unmount } = renderWithProviders(
+      <App
+        config={mockConfig as unknown as ServerConfig}
+        version={mockVersion}
+      />,
+      mockSettings,
+    );
+    currentUnmount = unmount;
+    await Promise.resolve();
+    // Footer should render - look for target directory which is always shown
+    expect(lastFrame()).toContain('/test/dir');
+  });
+
+  it('should not display Footer component when hideFooter is true', async () => {
+    mockSettings = createMockSettings({
+      user: { hideFooter: true },
+    });
+
+    const { lastFrame, unmount } = renderWithProviders(
+      <App
+        config={mockConfig as unknown as ServerConfig}
         settings={mockSettings}
         version={mockVersion}
       />,
     );
     currentUnmount = unmount;
     await Promise.resolve();
-    expect(vi.mocked(Header)).not.toHaveBeenCalled();
+    // Footer should not render - target directory should not appear
+    expect(lastFrame()).not.toContain('/test/dir');
+  });
+
+  it('should show footer if system says show, but workspace and user settings say hide', async () => {
+    mockSettings = createMockSettings({
+      system: { hideFooter: false },
+      user: { hideFooter: true },
+      workspace: { hideFooter: true },
+    });
+
+    const { lastFrame, unmount } = renderWithProviders(
+      <App
+        config={mockConfig as unknown as ServerConfig}
+        version={mockVersion}
+      />,
+      mockSettings,
+    );
+    currentUnmount = unmount;
+    await Promise.resolve();
+    // Footer should render because system overrides - look for target directory
+    expect(lastFrame()).toContain('/test/dir');
   });
 
   it('should show tips if system says show, but workspace and user settings say hide', async () => {
@@ -871,9 +931,9 @@ describe('App UI', () => {
     const { unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     await Promise.resolve();
@@ -901,9 +961,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -916,9 +976,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -931,9 +991,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     expect(lastFrame()).toMatchSnapshot();
@@ -951,9 +1011,9 @@ describe('App UI', () => {
     const { lastFrame, unmount } = renderWithProviders(
       <App
         config={mockConfig as unknown as ServerConfig}
-        settings={mockSettings}
         version={mockVersion}
       />,
+      mockSettings,
     );
     currentUnmount = unmount;
     expect(lastFrame()).toMatchSnapshot();
@@ -981,9 +1041,9 @@ describe('App UI', () => {
       const { unmount, rerender } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -991,7 +1051,6 @@ describe('App UI', () => {
       rerender(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
       );
@@ -1023,9 +1082,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
       await Promise.resolve();
@@ -1049,9 +1108,9 @@ describe('App UI', () => {
       const { unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -1071,9 +1130,9 @@ describe('App UI', () => {
       const { unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -1091,9 +1150,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
       expect(lastFrame()).toMatchSnapshot();
@@ -1117,9 +1176,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
@@ -1139,9 +1198,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
       await Promise.resolve();
@@ -1159,9 +1218,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
       await Promise.resolve();
@@ -1179,9 +1238,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
       await Promise.resolve();
@@ -1428,9 +1487,9 @@ describe('App UI', () => {
       const { lastFrame, unmount } = renderWithProviders(
         <App
           config={mockConfig as unknown as ServerConfig}
-          settings={mockSettings}
           version={mockVersion}
         />,
+        mockSettings,
       );
       currentUnmount = unmount;
 
