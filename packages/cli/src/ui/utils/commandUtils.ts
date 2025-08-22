@@ -36,8 +36,7 @@ export const copyToClipboard = async (text: string): Promise<void> => {
       if (child.stderr) {
         child.stderr.on('data', (chunk) => (stderr += chunk.toString()));
       }
-      child.on('error', reject);
-      child.on('close', (code) => {
+      const copyResult = (code: number | null) => {
         if (code === 0) return resolve();
         const errorMsg = stderr.trim();
         reject(
@@ -45,6 +44,17 @@ export const copyToClipboard = async (text: string): Promise<void> => {
             `'${cmd}' exited with code ${code}${errorMsg ? `: ${errorMsg}` : ''}`,
           ),
         );
+      }
+      child.on('exit', (code) => {
+        // 'close' event is a superset of 'exit'
+        child.stdin?.destroy();
+        child.stdout?.destroy(); // Even if inherit, just in case
+        child.stderr?.destroy();
+        copyResult(code)
+      });
+      child.on('error', reject);
+      child.on('close', (code) => {
+        copyResult(code)
       });
       if (child.stdin) {
         child.stdin.on('error', reject);
