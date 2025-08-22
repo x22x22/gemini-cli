@@ -44,18 +44,28 @@ export const copyToClipboard = async (text: string): Promise<void> => {
             `'${cmd}' exited with code ${code}${errorMsg ? `: ${errorMsg}` : ''}`,
           ),
         );
+      };
+
+      // The 'exit' event workaround is only needed for the specific stdio
+      // configuration used on Linux, which is indicated by `options` being present.
+      if (options) {
+        child.on('exit', (code) => {
+          child.stdin?.destroy();
+          child.stdout?.destroy();
+          child.stderr?.destroy();
+          copyResult(code);
+        });
       }
-      child.on('exit', (code) => {
-        // 'close' event is a superset of 'exit'
-        child.stdin?.destroy();
-        child.stdout?.destroy(); // Even if inherit, just in case
-        child.stderr?.destroy();
-        copyResult(code)
-      });
+
       child.on('error', reject);
+
+      // For win32/darwin, 'close' is the safest event, guaranteeing all I/O is flushed.
+      // For Linux, this acts as a fallback. This is safe because the promise
+      // can only be settled once.
       child.on('close', (code) => {
-        copyResult(code)
+        copyResult(code);
       });
+
       if (child.stdin) {
         child.stdin.on('error', reject);
         child.stdin.write(text);
