@@ -385,6 +385,91 @@ export class KittySequenceOverflowEvent {
   }
 }
 
+export class FileOperationEvent implements BaseTelemetryEvent {
+  'event.name': 'file_operation';
+  'event.timestamp': string;
+  tool_name: string;
+  operation: FileOperation;
+  lines?: number;
+  mimetype?: string;
+  extension?: string;
+  diff_stat?: DiffStat;
+  programming_language?: string;
+
+  constructor(
+    tool_name: string,
+    operation: FileOperation,
+    lines?: number,
+    mimetype?: string,
+    extension?: string,
+    diff_stat?: DiffStat,
+    programming_language?: string,
+  ) {
+    this['event.name'] = 'file_operation';
+    this['event.timestamp'] = new Date().toISOString();
+    this.tool_name = tool_name;
+    this.operation = operation;
+    this.lines = lines;
+    this.mimetype = mimetype;
+    this.extension = extension;
+    this.diff_stat = diff_stat;
+    this.programming_language = programming_language;
+  }
+}
+
+// Add these new event interfaces
+export class InvalidChunkEvent implements BaseTelemetryEvent {
+  'event.name': 'invalid_chunk';
+  'event.timestamp': string;
+  error_message?: string; // Optional: validation error details
+
+  constructor(error_message?: string) {
+    this['event.name'] = 'invalid_chunk';
+    this['event.timestamp'] = new Date().toISOString();
+    this.error_message = error_message;
+  }
+}
+
+export class ContentRetryEvent implements BaseTelemetryEvent {
+  'event.name': 'content_retry';
+  'event.timestamp': string;
+  attempt_number: number;
+  error_type: string; // e.g., 'EmptyStreamError'
+  retry_delay_ms: number;
+
+  constructor(
+    attempt_number: number,
+    error_type: string,
+    retry_delay_ms: number,
+  ) {
+    this['event.name'] = 'content_retry';
+    this['event.timestamp'] = new Date().toISOString();
+    this.attempt_number = attempt_number;
+    this.error_type = error_type;
+    this.retry_delay_ms = retry_delay_ms;
+  }
+}
+
+export class ContentRetryFailureEvent implements BaseTelemetryEvent {
+  'event.name': 'content_retry_failure';
+  'event.timestamp': string;
+  total_attempts: number;
+  final_error_type: string;
+  total_duration_ms?: number; // Optional: total time spent retrying
+
+  constructor(
+    total_attempts: number,
+    final_error_type: string,
+    total_duration_ms?: number,
+  ) {
+    this['event.name'] = 'content_retry_failure';
+    this['event.timestamp'] = new Date().toISOString();
+    this.total_attempts = total_attempts;
+    this.final_error_type = final_error_type;
+    this.total_duration_ms = total_duration_ms;
+  }
+}
+
 export type TelemetryEvent =
   | StartSessionEvent
   | EndSessionEvent
@@ -399,4 +484,9 @@ export type TelemetryEvent =
   | KittySequenceOverflowEvent
   | MalformedJsonResponseEvent
   | IdeConnectionEvent
-  | SlashCommandEvent;
+  | ConversationFinishedEvent
+  | SlashCommandEvent
+  | FileOperationEvent
+  | InvalidChunkEvent
+  | ContentRetryEvent
+  | ContentRetryFailureEvent;
