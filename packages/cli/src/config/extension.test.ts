@@ -5,9 +5,9 @@
  */
 
 import { vi } from 'vitest';
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import {
   EXTENSIONS_CONFIG_FILENAME,
   INSTALL_METADATA_FILENAME,
@@ -15,16 +15,18 @@ import {
   installExtension,
   loadExtensions,
   uninstallExtension,
+  updateExtension,
 } from './extension.js';
-import { execSync } from 'child_process';
-import { SimpleGit, simpleGit } from 'simple-git';
+import { type MCPServerConfig } from '@google/gemini-cli-core';
+import { execSync } from 'node:child_process';
+import { type SimpleGit, simpleGit } from 'simple-git';
 
 vi.mock('simple-git', () => ({
   simpleGit: vi.fn(),
 }));
 
 vi.mock('os', async (importOriginal) => {
-  const os = await importOriginal<typeof import('os')>();
+  const os = await importOriginal<typeof os>();
   return {
     ...os,
     homedir: vi.fn(),
@@ -57,6 +59,7 @@ describe('loadExtensions', () => {
   afterEach(() => {
     fs.rmSync(tempWorkspaceDir, { recursive: true, force: true });
     fs.rmSync(tempHomeDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
   });
 
   it('should include extension path in loaded extension', () => {
@@ -125,6 +128,37 @@ describe('loadExtensions', () => {
     expect(ext1?.contextFiles).toEqual([
       path.join(workspaceExtensionsDir, 'ext1', 'my-context-file.md'),
     ]);
+  });
+
+  it('should hydrate variables', () => {
+    const workspaceExtensionsDir = path.join(
+      tempWorkspaceDir,
+      EXTENSIONS_DIRECTORY_NAME,
+    );
+    fs.mkdirSync(workspaceExtensionsDir, { recursive: true });
+
+    createExtension(
+      workspaceExtensionsDir,
+      'test-extension',
+      '1.0.0',
+      false,
+      undefined,
+      {
+        'test-server': {
+          cwd: '${extensionPath}${/}server',
+        },
+      },
+    );
+
+    const extensions = loadExtensions(tempWorkspaceDir);
+    expect(extensions).toHaveLength(1);
+    const loadedConfig = extensions[0].config;
+    const expectedCwd = path.join(
+      workspaceExtensionsDir,
+      'test-extension',
+      'server',
+    );
+    expect(loadedConfig.mcpServers?.['test-server'].cwd).toBe(expectedCwd);
   });
 });
 
@@ -231,7 +265,7 @@ describe('installExtension', () => {
     await expect(
       installExtension({ source: sourceExtDir, type: 'local' }),
     ).rejects.toThrow(
-      'Error: Extension "my-local-extension" is already installed. Please uninstall it first.',
+      'Extension "my-local-extension" is already installed. Please uninstall it first.',
     );
   });
 
@@ -264,9 +298,7 @@ describe('installExtension', () => {
     });
 
     const mockedSimpleGit = simpleGit as vi.MockedFunction<typeof simpleGit>;
-    mockedSimpleGit.mockReturnValue({
-      clone,
-    } as unknown as SimpleGit);
+    mockedSimpleGit.mockReturnValue({ clone } as unknown as SimpleGit);
 
     await installExtension({ source: gitUrl, type: 'git' });
 
@@ -335,7 +367,7 @@ describe('uninstallExtension', () => {
 
   it('should throw an error if the extension does not exist', async () => {
     await expect(uninstallExtension('nonexistent-extension')).rejects.toThrow(
-      'Error: Extension "nonexistent-extension" not found.',
+      'Extension "nonexistent-extension" not found.',
     );
   });
 });
@@ -346,12 +378,13 @@ function createExtension(
   version: string,
   addContextFile = false,
   contextFileName?: string,
+  mcpServers?: Record<string, MCPServerConfig>,
 ): string {
   const extDir = path.join(extensionsDir, name);
   fs.mkdirSync(extDir, { recursive: true });
   fs.writeFileSync(
     path.join(extDir, EXTENSIONS_CONFIG_FILENAME),
-    JSON.stringify({ name, version, contextFileName }),
+    JSON.stringify({ name, version, contextFileName, mcpServers }),
   );
 
   if (addContextFile) {
@@ -363,3 +396,77 @@ function createExtension(
   }
   return extDir;
 }
+
+describe('updateExtension', () => {
+  let tempHomeDir: string;
+  let userExtensionsDir: string;
+
+  beforeEach(() => {
+    tempHomeDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'gemini-cli-test-home-'),
+    );
+    vi.mocked(os.homedir).mockReturnValue(tempHomeDir);
+    userExtensionsDir = path.join(tempHomeDir, '.gemini', 'extensions');
+    // Clean up before each test
+    fs.rmSync(userExtensionsDir, { recursive: true, force: true });
+    fs.mkdirSync(userExtensionsDir, { recursive: true });
+
+    vi.mocked(execSync).mockClear();
+  });
+
+  afterEach(() => {
+    fs.rmSync(tempHomeDir, { recursive: true, force: true });
+  });
+
+  it('should update a git-installed extension', async () => {
+    // 1. "Install" an extension
+    const gitUrl = 'https://github.com/google/gemini-extensions.git';
+    const extensionName = 'gemini-extensions';
+    const targetExtDir = path.join(userExtensionsDir, extensionName);
+    const metadataPath = path.join(targetExtDir, INSTALL_METADATA_FILENAME);
+
+    // Create the "installed" extension directory and files
+    fs.mkdirSync(targetExtDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(targetExtDir, EXTENSIONS_CONFIG_FILENAME),
+      JSON.stringify({ name: extensionName, version: '1.0.0' }),
+    );
+    fs.writeFileSync(
+      metadataPath,
+      JSON.stringify({ source: gitUrl, type: 'git' }),
+    );
+
+    // 2. Mock the git clone for the update
+    const clone = vi.fn().mockImplementation(async (_, destination) => {
+      fs.mkdirSync(destination, { recursive: true });
+      // This is the "updated" version
+      fs.writeFileSync(
+        path.join(destination, EXTENSIONS_CONFIG_FILENAME),
+        JSON.stringify({ name: extensionName, version: '1.1.0' }),
+      );
+    });
+
+    const mockedSimpleGit = simpleGit as vi.MockedFunction<typeof simpleGit>;
+    mockedSimpleGit.mockReturnValue({
+      clone,
+    } as unknown as SimpleGit);
+
+    // 3. Call updateExtension
+    const updateInfo = await updateExtension(extensionName);
+
+    // 4. Assertions
+    expect(updateInfo).toEqual({
+      originalVersion: '1.0.0',
+      updatedVersion: '1.1.0',
+    });
+
+    // Check that the config file reflects the new version
+    const updatedConfig = JSON.parse(
+      fs.readFileSync(
+        path.join(targetExtDir, EXTENSIONS_CONFIG_FILENAME),
+        'utf-8',
+      ),
+    );
+    expect(updatedConfig.version).toBe('1.1.0');
+  });
+});

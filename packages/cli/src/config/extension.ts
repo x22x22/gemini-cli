@@ -4,15 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
+import type {
   MCPServerConfig,
   GeminiCLIExtension,
-  Storage,
 } from '@google/gemini-cli-core';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
+import { Storage } from '@google/gemini-cli-core';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
 import { simpleGit } from 'simple-git';
+import { recursivelyHydrateStrings } from './extensions/variables.js';
 
 export const EXTENSIONS_DIRECTORY_NAME = '.gemini/extensions';
 
@@ -37,6 +38,11 @@ export interface ExtensionConfig {
 export interface ExtensionInstallMetadata {
   source: string;
   type: 'git' | 'local';
+}
+
+export interface ExtensionUpdateInfo {
+  originalVersion: string;
+  updatedVersion: string;
 }
 
 export class ExtensionStorage {
@@ -139,7 +145,11 @@ export function loadExtension(extensionDir: string): Extension | null {
 
   try {
     const configContent = fs.readFileSync(configFilePath, 'utf-8');
-    const config = JSON.parse(configContent) as ExtensionConfig;
+    const config = recursivelyHydrateStrings(JSON.parse(configContent), {
+      extensionPath: extensionDir,
+      '/': path.sep,
+      pathSeparator: path.sep,
+    }) as unknown as ExtensionConfig;
     if (!config.name || !config.version) {
       console.error(
         `Invalid extension config in ${configFilePath}: missing name or version.`,
@@ -321,7 +331,7 @@ export async function installExtension(
       )
     ) {
       throw new Error(
-        `Error: Extension "${newExtensionName}" is already installed. Please uninstall it first.`,
+        `Extension "${newExtensionName}" is already installed. Please uninstall it first.`,
       );
     }
 
@@ -346,7 +356,7 @@ export async function uninstallExtension(extensionName: string): Promise<void> {
       (installed) => installed.config.name === extensionName,
     )
   ) {
-    throw new Error(`Error: Extension "${extensionName}" not found.`);
+    throw new Error(`Extension "${extensionName}" not found.`);
   }
   const storage = new ExtensionStorage(extensionName);
   return await fs.promises.rm(storage.getExtensionDir(), {
@@ -380,4 +390,46 @@ export function toOutputString(extension: Extension): string {
     });
   }
   return output;
+}
+
+export async function updateExtension(
+  extensionName: string,
+): Promise<ExtensionUpdateInfo | undefined> {
+  const installedExtensions = loadUserExtensions();
+  const extension = installedExtensions.find(
+    (installed) => installed.config.name === extensionName,
+  );
+  if (!extension) {
+    throw new Error(
+      `Extension "${extensionName}" not found. Run gemini extensions list to see available extensions.`,
+    );
+  }
+  if (!extension.installMetadata) {
+    throw new Error(
+      `Extension cannot be updated because it is missing the .gemini-extension.install.json file. To update manually, uninstall and then reinstall the updated version.`,
+    );
+  }
+  const originalVersion = extension.config.version;
+  const tempDir = await ExtensionStorage.createTmpDir();
+  try {
+    await copyExtension(extension.path, tempDir);
+    await uninstallExtension(extensionName);
+    await installExtension(extension.installMetadata);
+
+    const updatedExtension = loadExtension(extension.path);
+    if (!updatedExtension) {
+      throw new Error('Updated extension not found after installation.');
+    }
+    const updatedVersion = updatedExtension.config.version;
+    return {
+      originalVersion,
+      updatedVersion,
+    };
+  } catch (e) {
+    console.error(`Error updating extension, rolling back. ${e}`);
+    await copyExtension(tempDir, extension.path);
+    throw e;
+  } finally {
+    await fs.promises.rm(tempDir, { recursive: true, force: true });
+  }
 }
