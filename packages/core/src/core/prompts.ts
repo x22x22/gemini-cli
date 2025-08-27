@@ -19,7 +19,10 @@ import process from 'node:process';
 import { isGitRepository } from '../utils/gitUtils.js';
 import { MemoryTool, GEMINI_CONFIG_DIR } from '../tools/memoryTool.js';
 
-export function getCoreSystemPrompt(userMemory?: string): string {
+export function getCoreSystemPrompt(
+  userMemory?: string,
+  usePlanningTool?: boolean,
+): string {
   // if GEMINI_SYSTEM_MD is set (and not 0|false), override system prompt from file
   // default path is .gemini/system.md but can be modified via custom path in GEMINI_SYSTEM_MD
   let systemMdEnabled = false;
@@ -113,7 +116,38 @@ When requested to perform tasks like fixing bugs, adding features, refactoring, 
 - **Background Processes:** Use background processes (via \`&\`) for commands that are unlikely to stop on their own, e.g. \`node server.js &\`. If unsure, ask the user.
 - **Interactive Commands:** Try to avoid shell commands that are likely to require user interaction (e.g. \`git rebase -i\`). Use non-interactive versions of commands (e.g. \`npm init -y\` instead of \`npm init\`) when available, and otherwise remind the user that interactive shell commands are not supported and may cause hangs until canceled by the user.
 - **Remembering Facts:** Use the '${MemoryTool.Name}' tool to remember specific, *user-related* facts or preferences when the user explicitly asks, or when they state a clear, concise piece of information that would help personalize or streamline *your future interactions with them* (e.g., preferred coding style, common project paths they use, personal tool aliases). This tool is for user-specific information that should persist across sessions. Do *not* use it for general project context or information. If unsure whether to save something, you can ask the user, "Should I remember that for you?"
-- **Respect User Confirmations:** Most tool calls (also denoted as 'function calls') will first require confirmation from the user, where they will either approve or cancel the function call. If a user cancels a function call, respect their choice and do _not_ try to make the function call again. It is okay to request the tool call again _only_ if the user requests that same tool call on a subsequent prompt. When a user cancels a function call, assume best intentions from the user and consider inquiring if they prefer any alternative paths forward.
+- **Respect User Confirmations:** Most tool calls (also denoted as 'function calls') will first require confirmation from the user, where they will either approve or cancel the function call. If a user cancels a function call, respect their choice and do _not_ try to make the function call again. It is okay to request the tool call again _only_ if the user requests that same tool call on a subsequent prompt. When a user cancels a function call, assume best intentions from the user and consider inquiring if they prefer any alternative paths forward.${
+        usePlanningTool
+          ? `
+
+## Planning Tool Usage
+**🚨 MANDATORY FIRST STEP:** Before ANY file reads or edits, you MUST use 'planning_tool' when the user asks you to:
+- Add, modify, or deprecate command-line arguments/flags
+- Implement a new feature (even small ones)
+- Refactor existing functionality
+- Fix bugs that might touch multiple files
+- Make changes that affect both code and tests
+
+**Specific triggers that REQUIRE planning_tool:**
+- "deprecate the --X flag" → Use planning_tool FIRST
+- "add a new positional argument" → Use planning_tool FIRST  
+- "refactor X to Y" → Use planning_tool FIRST
+- "implement X feature" → Use planning_tool FIRST
+- Any request mentioning multiple files or components → Use planning_tool FIRST
+
+**Planning First Approach:** 
+- Always use the planning tool BEFORE any file reads or modifications for complex tasks
+- The planning tool will generate a detailed JSON execution plan that ensures nothing is missed
+- Follow the generated plan systematically to complete the task
+- This approach prevents errors and ensures all requirements are addressed
+
+**Examples of tasks that REQUIRE the planning tool:**
+- "Add a new command line argument and update the related functionality"
+- "Refactor this component to use a different pattern"
+- "Implement a new feature that touches multiple files"
+- "Fix this bug that might affect multiple parts of the codebase"`
+          : ''
+      }
 
 ## Interaction Details
 - **Help Command:** The user can use '/help' to display help information.

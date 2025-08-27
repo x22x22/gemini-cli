@@ -244,7 +244,7 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
     // Register MCP subcommands
     .command(mcpCommand);
 
-  if (settings?.extensionManagement ?? false) {
+  if (settings?.['extensionManagement'] ?? false) {
     yargsInstance.command(extensionsCommand);
   }
 
@@ -495,7 +495,8 @@ export async function loadCliConfig(
     question,
     fullContext: argv.allFiles || false,
     coreTools: settings.coreTools || undefined,
-    allowedTools: argv.allowedTools || settings.allowedTools || undefined,
+    allowedTools:
+      argv.allowedTools || (settings['allowedTools'] as string[]) || [],
     excludeTools,
     toolDiscoveryCommand: settings.toolDiscoveryCommand,
     toolCallCommand: settings.toolCallCommand,
@@ -532,7 +533,7 @@ export async function loadCliConfig(
       respectGeminiIgnore: settings.fileFiltering?.respectGeminiIgnore,
       enableRecursiveFileSearch:
         settings.fileFiltering?.enableRecursiveFileSearch,
-      disableFuzzySearch: settings.fileFiltering?.disableFuzzySearch,
+      disableFuzzySearch: settings.fileFiltering?.['disableFuzzySearch'],
     },
     checkpointing: argv.checkpointing || settings.checkpointing?.enabled,
     proxy:
@@ -563,6 +564,7 @@ export async function loadCliConfig(
     shouldUseNodePtyShell: settings.shouldUseNodePtyShell,
     skipNextSpeakerCheck: settings.skipNextSpeakerCheck,
     enablePromptCompletion: settings.enablePromptCompletion ?? false,
+    usePlanningTool: settings.usePlanningTool,
   });
 }
 

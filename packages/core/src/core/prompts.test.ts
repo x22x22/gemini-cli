@@ -269,4 +269,39 @@ describe('Core System Prompt (prompts.ts)', () => {
       );
     });
   });
+
+  describe('Planning tool prompt', () => {
+    it('should not include planning tool section when usePlanningTool is false', () => {
+      vi.stubEnv('SANDBOX', undefined);
+      const prompt = getCoreSystemPrompt(undefined, false);
+      expect(prompt).not.toContain('## Planning Tool Usage');
+      expect(prompt).not.toContain('planning_tool');
+    });
+
+    it('should not include planning tool section when usePlanningTool is undefined', () => {
+      vi.stubEnv('SANDBOX', undefined);
+      const prompt = getCoreSystemPrompt(undefined, undefined);
+      expect(prompt).not.toContain('## Planning Tool Usage');
+      expect(prompt).not.toContain('planning_tool');
+    });
+
+    it('should include planning tool section when usePlanningTool is true', () => {
+      vi.stubEnv('SANDBOX', undefined);
+      const prompt = getCoreSystemPrompt(undefined, true);
+      expect(prompt).toContain('## Planning Tool Usage');
+      expect(prompt).toContain('planning_tool');
+      expect(prompt).toContain('MANDATORY FIRST STEP');
+      expect(prompt).toContain('Planning First Approach');
+      expect(prompt).toContain('Specific triggers that REQUIRE');
+    });
+
+    it('should include planning tool section with user memory when both are provided', () => {
+      vi.stubEnv('SANDBOX', undefined);
+      const memory = 'Remember to be extra careful.';
+      const prompt = getCoreSystemPrompt(memory, true);
+      expect(prompt).toContain('## Planning Tool Usage');
+      expect(prompt).toContain('planning_tool');
+      expect(prompt.endsWith(`\n\n---\n\n${memory}`)).toBe(true);
+    });
+  });
 });
