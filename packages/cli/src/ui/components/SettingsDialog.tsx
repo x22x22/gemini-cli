@@ -65,9 +65,10 @@ export function SettingsDialog({
   const [showRestartPrompt, setShowRestartPrompt] = useState(false);
 
   // Local pending settings state for the selected scope
-  const [pendingSettings, setPendingSettings] = useState<Settings>(() =>
-    // Deep clone to avoid mutation
-    structuredClone(settings.forScope(selectedScope).settings),
+  const [pendingSettings, setPendingSettings] = useState<Partial<Settings>>(
+    () =>
+      // Deep clone to avoid mutation
+      structuredClone(settings.forScope(selectedScope).settings),
   );
 
   // Track which settings have been modified by the user

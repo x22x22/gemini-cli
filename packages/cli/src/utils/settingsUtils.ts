@@ -412,7 +412,7 @@ export function saveModifiedSettings(
         loadedSettings.setValue(
           scope,
           parentKey as keyof Settings,
-          newParentValue,
+          newParentValue as Settings[keyof Settings],
         );
       }
     }
