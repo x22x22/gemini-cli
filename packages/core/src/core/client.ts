@@ -245,6 +245,7 @@ export class GeminiClient {
     try {
       const userMemory = this.config.getUserMemory();
       const systemInstruction = getCoreSystemPrompt(
+        this.config,
         userMemory,
         this.config.getUsePlanningTool(),
       );
@@ -583,6 +584,7 @@ export class GeminiClient {
     try {
       const userMemory = this.config.getUserMemory();
       const systemInstruction = getCoreSystemPrompt(
+        this.config,
         userMemory,
         this.config.getUsePlanningTool(),
       );
@@ -697,6 +699,7 @@ export class GeminiClient {
     try {
       const userMemory = this.config.getUserMemory();
       const systemInstruction = getCoreSystemPrompt(
+        this.config,
         userMemory,
         this.config.getUsePlanningTool(),
       );

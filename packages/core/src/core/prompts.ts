@@ -18,8 +18,11 @@ import { WriteFileTool } from '../tools/write-file.js';
 import process from 'node:process';
 import { isGitRepository } from '../utils/gitUtils.js';
 import { MemoryTool, GEMINI_CONFIG_DIR } from '../tools/memoryTool.js';
+import { getPlanningTool } from '../tools/planning-tool.js';
+import type { Config } from '../config/config.js';
 
 export function getCoreSystemPrompt(
+  config: Config,
   userMemory?: string,
   usePlanningTool?: boolean,
 ): string {
@@ -130,12 +133,12 @@ When requested to perform tasks like fixing bugs, adding features, refactoring, 
 
 **Specific triggers that REQUIRE planning_tool:**
 - "deprecate the --X flag" → Use planning_tool FIRST
-- "add a new positional argument" → Use planning_tool FIRST  
+- "add a new positional argument" → Use planning_tool FIRST
 - "refactor X to Y" → Use planning_tool FIRST
 - "implement X feature" → Use planning_tool FIRST
 - Any request mentioning multiple files or components → Use planning_tool FIRST
 
-**Planning First Approach:** 
+**Planning First Approach:**
 - Always use the planning tool BEFORE any file reads or modifications for complex tasks
 - The planning tool will generate a detailed JSON execution plan that ensures nothing is missed
 - Follow the generated plan systematically to complete the task
@@ -222,7 +225,12 @@ model: [tool_call: ${ShellTool.Name} for 'node server.js &' because it must run 
 <example>
 user: Refactor the auth logic in src/auth.py to use the requests library instead of urllib.
 model: Okay, I can refactor 'src/auth.py'.
-First, I'll analyze the code and check for a test safety net before planning any changes.
+${function () {
+  if (usePlanningTool) {
+    return `I'll start by using the Planning Tool since this is a significant change that requires careful planning.`;
+  }
+  return `I'll start by analyzing the code and checking for a test safety net before planning any changes.`;
+}}
 [tool_call: ${GlobTool.Name} for path 'tests/test_auth.py']
 [tool_call: ${ReadFileTool.Name} for absolute_path '/path/to/tests/test_auth.py']
 (After analysis)
@@ -293,7 +301,34 @@ I found the following 'app.config' files:
 - /path/to/moduleA/app.config
 - /path/to/moduleB/app.config
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
+</example>${
+        usePlanningTool
+          ? (() => {
+              const planningTool = getPlanningTool(config);
+              return `
+
+<example>
+user: Add a new command line argument '--verbose' to the main script to enable detailed logging.
+model:
+Okay, I will add a new '--verbose' argument. Since this involves modifying command-line argument handling, I must use the planning tool first to ensure all necessary files are updated correctly.
+[tool_call: ${planningTool.name} for task "Add a new command line argument '--verbose' to the main script to enable detailed logging."]
+(After receiving the plan from the planning_tool)
+The plan is ready. I will now execute the steps, starting with reading the main script to identify where to add the new argument.
+[tool_call: ${ReadFileTool.Name} for absolute_path '/path/to/main_script.py']
 </example>
+
+<example>
+user: Implement a new feature to cache remote API responses in-memory to improve performance.
+model:
+I will implement an in-memory cache for API responses. This is a new feature that will likely touch multiple files (e.g., API client, cache module, configuration). Therefore, I will start by using the planning tool.
+[tool_call: ${planningTool.name} for task "Implement a new feature to cache remote API responses in-memory."]
+(After receiving the plan from the planning_tool)
+The plan is generated. I will start by creating a new file for the cache implementation.
+[tool_call: ${WriteFileTool.Name} to create /path/to/src/cache.js with initial content]
+</example>`;
+            })()
+          : ''
+      }
 
 # Final Reminder
 Your core function is efficient and safe assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding safety and potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use '${ReadFileTool.Name}' or '${ReadManyFilesTool.Name}' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved.
@@ -358,7 +393,7 @@ The structure MUST be as follows:
          - Build Command: \`npm run build\`
          - Testing: Tests are run with \`npm test\`. Test files must end in \`.test.ts\`.
          - API Endpoint: The primary API endpoint is \`https://api.example.com/v2\`.
-         
+
         -->
     </key_knowledge>
 
