@@ -78,6 +78,7 @@ export interface CliArgs {
   proxy: string | undefined;
   includeDirectories: string[] | undefined;
   screenReader: boolean | undefined;
+  sessionSummary: string | undefined;
 }
 
 export async function parseArguments(settings: Settings): Promise<CliArgs> {
@@ -227,6 +228,10 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
           description: 'Enable screen reader mode for accessibility.',
           default: false,
         })
+        .option('session-summary', {
+          type: 'string',
+          description: 'File to write session summary to.',
+        })
         .deprecateOption(
           'telemetry',
           'Use settings.json instead. This flag will be removed in a future version.',
@@ -328,6 +333,7 @@ export async function loadHierarchicalGeminiMemory(
   fileService: FileDiscoveryService,
   settings: Settings,
   extensionContextFilePaths: string[] = [],
+  folderTrust: boolean,
   memoryImportFormat: 'flat' | 'tree' = 'tree',
   fileFilteringOptions?: FileFilteringOptions,
 ): Promise<{ memoryContent: string; fileCount: number }> {
@@ -353,6 +359,7 @@ export async function loadHierarchicalGeminiMemory(
     debugMode,
     fileService,
     extensionContextFilePaths,
+    folderTrust,
     memoryImportFormat,
     fileFilteringOptions,
     settings.context?.discoveryMaxDirs,
@@ -380,7 +387,7 @@ export async function loadCliConfig(
     settings.security?.folderTrust?.featureEnabled ?? false;
   const folderTrustSetting = settings.security?.folderTrust?.enabled ?? true;
   const folderTrust = folderTrustFeature && folderTrustSetting;
-  const trustedFolder = isWorkspaceTrusted(settings);
+  const trustedFolder = isWorkspaceTrusted(settings) ?? true;
 
   const allExtensions = annotateActiveExtensions(
     extensions,
@@ -428,6 +435,7 @@ export async function loadCliConfig(
     fileService,
     settings,
     extensionContextFilePaths,
+    trustedFolder,
     memoryImportFormat,
     fileFiltering,
   );
