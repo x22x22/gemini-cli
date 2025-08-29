@@ -23,12 +23,15 @@ const mockProcess = vi.hoisted(() => ({
   platform: 'darwin',
 }));
 
-vi.stubGlobal('process', Object.create(process, {
-  platform: {
-    get: () => mockProcess.platform,
-    configurable: true, // Allows the property to be changed later if needed
-  },
-}));
+vi.stubGlobal(
+  'process',
+  Object.create(process, {
+    platform: {
+      get: () => mockProcess.platform,
+      configurable: true, // Allows the property to be changed later if needed
+    },
+  }),
+);
 
 interface MockChildProcess extends EventEmitter {
   stdin: EventEmitter & {
@@ -271,11 +274,11 @@ describe('commandUtils', () => {
             if (callCount === 0) {
               // First call (xclip) fails with 'exit'
               child.stderr.emit('data', 'xclip failed');
-              (child as any).emit('exit', 127);
+              child.emit('exit', 127);
             } else {
               // Second call (xsel) also fails with 'exit'
               child.stderr.emit('data', 'xsel failed');
-              (child as any).emit('exit', 127);
+              child.emit('exit', 127);
             }
             callCount++;
           }, 0);
@@ -284,7 +287,7 @@ describe('commandUtils', () => {
         });
 
         await expect(copyToClipboard(testText)).rejects.toThrow(
-          "All copy commands failed. \"'xclip' exited with code 127: xclip failed\", \"'xsel' exited with code 127: xsel failed\"."
+          'All copy commands failed. "\'xclip\' exited with code 127: xclip failed", "\'xsel\' exited with code 127: xsel failed".',
         );
 
         expect(mockSpawn).toHaveBeenCalledTimes(2);
