@@ -64,8 +64,8 @@ export const copyToClipboard = async (text: string): Promise<void> => {
       };
 
       // The 'exit' event workaround is only needed for the specific stdio
-      // configuration used on Linux, which is indicated by `options` being present.
-      if (options) {
+      // configuration used on Linux.
+      if (process.platform === 'linux') {
         child.on('exit', (code) => {
           child.stdin?.destroy();
           child.stdout?.destroy();
