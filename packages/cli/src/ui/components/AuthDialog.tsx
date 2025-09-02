@@ -7,7 +7,7 @@
 import type React from 'react';
 import { useState } from 'react';
 import { Box, Text } from 'ink';
-import { Colors } from '../colors.js';
+import { theme as semanticTheme } from '../semantic-colors.js';
 import { RadioButtonSelect } from './shared/RadioButtonSelect.js';
 import type { LoadedSettings } from '../../config/settings.js';
 import { SettingScope } from '../../config/settings.js';
@@ -135,7 +135,7 @@ export function AuthDialog({
   return (
     <Box
       borderStyle="round"
-      borderColor={Colors.Gray}
+      borderColor={semanticTheme.text.secondary}
       flexDirection="column"
       padding={1}
       width="100%"
@@ -153,17 +153,17 @@ export function AuthDialog({
       </Box>
       {errorMessage && (
         <Box marginTop={1}>
-          <Text color={Colors.AccentRed}>{errorMessage}</Text>
+          <Text color={semanticTheme.status.error}>{errorMessage}</Text>
         </Box>
       )}
       <Box marginTop={1}>
-        <Text color={Colors.Gray}>(Use Enter to select)</Text>
+        <Text color={semanticTheme.text.secondary}>(Use Enter to select)</Text>
       </Box>
       <Box marginTop={1}>
         <Text>Terms of Services and Privacy Notice for Gemini CLI</Text>
       </Box>
       <Box marginTop={1}>
-        <Text color={Colors.AccentBlue}>
+        <Text color={semanticTheme.text.link}>
           {
             'https://github.com/google-gemini/gemini-cli/blob/main/docs/tos-privacy.md'
           }
