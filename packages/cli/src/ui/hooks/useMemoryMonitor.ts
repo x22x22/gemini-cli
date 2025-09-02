@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import process from 'node:process';
 import { type HistoryItemWithoutId, MessageType } from '../types.js';
 
@@ -15,11 +15,14 @@ interface MemoryMonitorOptions {
 }
 
 export const useMemoryMonitor = ({ addItem }: MemoryMonitorOptions) => {
+  const addItemRef = useRef(addItem);
+  addItemRef.current = addItem;
+
   useEffect(() => {
     const intervalId = setInterval(() => {
       const usage = process.memoryUsage().rss;
       if (usage > MEMORY_WARNING_THRESHOLD) {
-        addItem(
+        addItemRef.current(
           {
             type: MessageType.WARNING,
             text:
@@ -36,5 +39,5 @@ export const useMemoryMonitor = ({ addItem }: MemoryMonitorOptions) => {
     }, 5000); // Check every 5 seconds
 
     return () => clearInterval(intervalId);
-  }, [addItem]);
+  }, []);
 };
