@@ -36,7 +36,7 @@ export function SuggestionsDisplay({
   if (isLoading) {
     return (
       <Box paddingX={1} width={width}>
-        <Text color="gray">Loading suggestions...</Text>
+        <Text color={semanticTheme.text.secondary}>Loading suggestions...</Text>
       </Box>
     );
   }
@@ -119,9 +119,11 @@ export function SuggestionsDisplay({
           </Box>
         );
       })}
-      {endIndex < suggestions.length && <Text color="gray">▼</Text>}
+      {endIndex < suggestions.length && (
+        <Text color={semanticTheme.text.secondary}>▼</Text>
+      )}
       {suggestions.length > MAX_SUGGESTIONS_TO_SHOW && (
-        <Text color="gray">
+        <Text color={semanticTheme.text.secondary}>
           ({activeIndex + 1}/{suggestions.length})
         </Text>
       )}

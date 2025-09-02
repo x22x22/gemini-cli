@@ -82,14 +82,14 @@ export function IdeIntegrationNudge({
     <Box
       flexDirection="column"
       borderStyle="round"
-      borderColor="yellow"
+      borderColor={theme.semanticColors.status.warning}
       padding={1}
       width="100%"
       marginLeft={1}
     >
       <Box marginBottom={1} flexDirection="column">
         <Text color={theme.semanticColors.text.primary}>
-          <Text color="yellow">{'> '}</Text>
+          <Text color={theme.semanticColors.status.warning}>{'> '}</Text>
           {`Do you want to connect ${ideName ?? 'your editor'} to Gemini CLI?`}
         </Text>
         <Text dimColor>{installText}</Text>

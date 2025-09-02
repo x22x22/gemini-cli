@@ -37,9 +37,13 @@ export const PrepareLabel: React.FC<PrepareLabelProps> = ({
   const end = label.slice(matchedIndex + userInput.length);
 
   return (
-    <Text>
+    <Text color={semanticTheme.text.primary}>
       <Text color={textColor}>{start}</Text>
-      <Text color="black" bold backgroundColor={highlightColor}>
+      <Text
+        color={semanticTheme.background.primary}
+        bold
+        backgroundColor={highlightColor}
+      >
         {match}
       </Text>
       <Text color={textColor}>{end}</Text>

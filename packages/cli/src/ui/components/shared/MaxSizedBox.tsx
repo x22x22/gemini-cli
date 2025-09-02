@@ -178,7 +178,7 @@ export const MaxSizedBox: React.FC<MaxSizedBoxProps> = ({
           </Text>
         ))
       ) : (
-        <Text> </Text>
+        <Text color={theme.text.primary}> </Text>
       )}
     </Box>
   ));
@@ -456,7 +456,10 @@ function layoutInkElementAsStyledText(
           // For lines after the first line break, show only ellipsis if the text would be truncated
           if (index > 0 && textWidth > 0) {
             // This is content after a line break - just show ellipsis to indicate truncation
-            currentLine.push({ text: '…', props: {} });
+            currentLine.push({
+              text: '…',
+              props: { color: theme.text.secondary },
+            });
             currentLineWidth = stringWidth('…');
           } else {
             // This is the first line or a continuation, try to fit what we can
@@ -485,7 +488,10 @@ function layoutInkElementAsStyledText(
               if (slice) {
                 currentLine.push({ text: slice, props: segment.props });
               }
-              currentLine.push({ text: '…', props: {} });
+              currentLine.push({
+                text: '…',
+                props: { color: theme.text.secondary },
+              });
               currentLineWidth = truncatedWidth + stringWidth('…');
             }
           }
