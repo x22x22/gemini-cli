@@ -5,11 +5,10 @@
  */
 
 import { theme } from './semantic-colors.js';
-import { themeManager } from './themes/theme-manager.js';
 
 export const Colors = {
   get type() {
-    return themeManager.getActiveTheme().colors.type;
+    return theme.type;
   },
   get Foreground() {
     return theme.text.primary;
@@ -18,7 +17,7 @@ export const Colors = {
     return theme.background.primary;
   },
   get LightBlue() {
-    return themeManager.getActiveTheme().colors.LightBlue;
+    return theme.text.link;
   },
   get AccentBlue() {
     return theme.text.link;
@@ -27,7 +26,7 @@ export const Colors = {
     return theme.text.accent;
   },
   get AccentCyan() {
-    return themeManager.getActiveTheme().colors.AccentCyan;
+    return theme.text.accent;
   },
   get AccentGreen() {
     return theme.status.success;
