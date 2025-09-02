@@ -29,8 +29,8 @@ export const GeminiPrivacyNotice = ({ onExit }: GeminiPrivacyNoticeProps) => {
       </Text>
       <Newline />
       <Text>
-        By using the Gemini API<Text color={semanticTheme.text.link}>[1]</Text>
-        , Google AI Studio
+        By using the Gemini API<Text color={semanticTheme.text.link}>[1]</Text>,
+        Google AI Studio
         <Text color={semanticTheme.status.error}>[2]</Text>, and the other
         Google developer services that reference these terms (collectively, the
         &quot;APIs&quot; or &quot;Services&quot;), you are agreeing to Google

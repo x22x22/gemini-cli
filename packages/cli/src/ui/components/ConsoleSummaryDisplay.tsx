@@ -27,9 +27,7 @@ export const ConsoleSummaryDisplay: React.FC<ConsoleSummaryDisplayProps> = ({
       {errorCount > 0 && (
         <Text color={semanticTheme.status.error}>
           {errorIcon} {errorCount} error{errorCount > 1 ? 's' : ''}{' '}
-          <Text color={semanticTheme.text.secondary}>
-            (ctrl+o for details)
-          </Text>
+          <Text color={semanticTheme.text.secondary}>(ctrl+o for details)</Text>
         </Text>
       )}
     </Box>

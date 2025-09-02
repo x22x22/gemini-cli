@@ -40,9 +40,7 @@ export const AutoAcceptIndicator: React.FC<AutoAcceptIndicatorProps> = ({
     <Box>
       <Text color={textColor}>
         {textContent}
-        {subText && (
-          <Text color={semanticTheme.text.secondary}>{subText}</Text>
-        )}
+        {subText && <Text color={semanticTheme.text.secondary}>{subText}</Text>}
       </Text>
     </Box>
   );

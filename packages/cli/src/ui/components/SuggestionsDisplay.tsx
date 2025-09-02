@@ -70,9 +70,7 @@ export function SuggestionsDisplay({
 
   return (
     <Box flexDirection="column" paddingX={1} width={width}>
-      {scrollOffset > 0 && (
-        <Text color={semanticTheme.text.primary}>▲</Text>
-      )}
+      {scrollOffset > 0 && <Text color={semanticTheme.text.primary}>▲</Text>}
 
       {visibleSuggestions.map((suggestion, index) => {
         const originalIndex = startIndex + index;
