@@ -10,7 +10,7 @@ import {
   performWorkspaceExtensionMigration,
 } from '../../config/extension.js';
 import { RadioButtonSelect } from './shared/RadioButtonSelect.js';
-import { Colors } from '../colors.js';
+import { theme as semanticTheme } from '../semantic-colors.js';
 import { useState } from 'react';
 
 export function WorkspaceMigrationDialog(props: {
@@ -40,7 +40,7 @@ export function WorkspaceMigrationDialog(props: {
       <Box
         flexDirection="column"
         borderStyle="round"
-        borderColor={Colors.Gray}
+        borderColor={semanticTheme.text.secondary}
         padding={1}
       >
         {failedExtensions.length > 0 ? (
@@ -70,7 +70,7 @@ export function WorkspaceMigrationDialog(props: {
     <Box
       flexDirection="column"
       borderStyle="round"
-      borderColor={Colors.Gray}
+      borderColor={semanticTheme.text.secondary}
       padding={1}
     >
       <Text bold>Workspace-level extensions are deprecated{'\n'}</Text>

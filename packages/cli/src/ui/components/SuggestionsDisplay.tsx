@@ -5,7 +5,7 @@
  */
 
 import { Box, Text } from 'ink';
-import { Colors } from '../colors.js';
+import { theme as semanticTheme } from '../semantic-colors.js';
 import { PrepareLabel } from './PrepareLabel.js';
 import { isSlashCommand } from '../utils/commandUtils.js';
 export interface Suggestion {
@@ -70,12 +70,16 @@ export function SuggestionsDisplay({
 
   return (
     <Box flexDirection="column" paddingX={1} width={width}>
-      {scrollOffset > 0 && <Text color={Colors.Foreground}>▲</Text>}
+      {scrollOffset > 0 && (
+        <Text color={semanticTheme.text.primary}>▲</Text>
+      )}
 
       {visibleSuggestions.map((suggestion, index) => {
         const originalIndex = startIndex + index;
         const isActive = originalIndex === activeIndex;
-        const textColor = isActive ? Colors.AccentPurple : Colors.Gray;
+        const textColor = isActive
+          ? semanticTheme.text.accent
+          : semanticTheme.text.secondary;
         const labelElement = (
           <PrepareLabel
             label={suggestion.label}

@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Text } from 'ink';
-import { Colors } from '../colors.js';
+import { theme as semanticTheme } from '../semantic-colors.js';
 import stringWidth from 'string-width';
 
 // Constants for Markdown parsing
@@ -96,7 +96,7 @@ const RenderInlineInternal: React.FC<RenderInlineProps> = ({ text }) => {
         const codeMatch = fullMatch.match(/^(`+)(.+?)\1$/s);
         if (codeMatch && codeMatch[2]) {
           renderedNode = (
-            <Text key={key} color={Colors.AccentPurple}>
+            <Text key={key} color={semanticTheme.text.accent}>
               {codeMatch[2]}
             </Text>
           );
@@ -113,7 +113,7 @@ const RenderInlineInternal: React.FC<RenderInlineProps> = ({ text }) => {
           renderedNode = (
             <Text key={key}>
               {linkText}
-              <Text color={Colors.AccentBlue}> ({url})</Text>
+              <Text color={semanticTheme.text.link}> ({url})</Text>
             </Text>
           );
         }
@@ -133,7 +133,7 @@ const RenderInlineInternal: React.FC<RenderInlineProps> = ({ text }) => {
         );
       } else if (fullMatch.match(/^https?:\/\//)) {
         renderedNode = (
-          <Text key={key} color={Colors.AccentBlue}>
+          <Text key={key} color={semanticTheme.text.link}>
             {fullMatch}
           </Text>
         );
