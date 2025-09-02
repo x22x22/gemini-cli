@@ -79,7 +79,7 @@ export const ShellConfirmationDialog: React.FC<
         <Box
           flexDirection="column"
           borderStyle="round"
-          borderColor={semanticTheme.text.secondary}
+          borderColor={semanticTheme.border.default}
           paddingX={1}
           marginTop={1}
         >

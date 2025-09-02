@@ -17,7 +17,7 @@ export const Help: React.FC<Help> = ({ commands }) => (
   <Box
     flexDirection="column"
     marginBottom={1}
-    borderColor={semanticTheme.text.secondary}
+    borderColor={semanticTheme.border.default}
     borderStyle="round"
     padding={1}
   >

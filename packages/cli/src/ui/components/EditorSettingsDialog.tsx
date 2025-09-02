@@ -112,7 +112,7 @@ export function EditorSettingsDialog({
   return (
     <Box
       borderStyle="round"
-      borderColor={semanticTheme.text.secondary}
+      borderColor={semanticTheme.border.default}
       flexDirection="row"
       padding={1}
       width="100%"

@@ -209,7 +209,7 @@ export function ThemeDialog({
   return (
     <Box
       borderStyle="round"
-      borderColor={semanticTheme.text.secondary}
+      borderColor={semanticTheme.border.default}
       flexDirection="column"
       paddingTop={includePadding ? 1 : 0}
       paddingBottom={includePadding ? 1 : 0}
@@ -268,7 +268,7 @@ export function ThemeDialog({
             return (
               <Box
                 borderStyle="single"
-                borderColor={semanticTheme.text.secondary}
+                borderColor={semanticTheme.border.default}
                 paddingTop={includePadding ? 1 : 0}
                 paddingBottom={includePadding ? 1 : 0}
                 paddingLeft={1}

@@ -135,7 +135,7 @@ export function AuthDialog({
   return (
     <Box
       borderStyle="round"
-      borderColor={semanticTheme.text.secondary}
+      borderColor={semanticTheme.border.default}
       flexDirection="column"
       padding={1}
       width="100%"

@@ -31,7 +31,7 @@ export const DetailedMessagesDisplay: React.FC<
       flexDirection="column"
       marginTop={1}
       borderStyle="round"
-      borderColor={semanticTheme.text.secondary}
+      borderColor={semanticTheme.border.default}
       paddingX={1}
       width={width}
     >

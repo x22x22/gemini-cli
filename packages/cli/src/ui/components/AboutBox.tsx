@@ -30,7 +30,7 @@ export const AboutBox: React.FC<AboutBoxProps> = ({
 }) => (
   <Box
     borderStyle="round"
-    borderColor={semanticTheme.text.secondary}
+    borderColor={semanticTheme.border.default}
     flexDirection="column"
     padding={1}
     marginY={1}

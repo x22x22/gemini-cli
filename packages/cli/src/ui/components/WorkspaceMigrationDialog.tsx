@@ -40,7 +40,7 @@ export function WorkspaceMigrationDialog(props: {
       <Box
         flexDirection="column"
         borderStyle="round"
-        borderColor={semanticTheme.text.secondary}
+        borderColor={semanticTheme.border.default}
         padding={1}
       >
         {failedExtensions.length > 0 ? (
@@ -70,7 +70,7 @@ export function WorkspaceMigrationDialog(props: {
     <Box
       flexDirection="column"
       borderStyle="round"
-      borderColor={semanticTheme.text.secondary}
+      borderColor={semanticTheme.border.default}
       padding={1}
     >
       <Text bold>Workspace-level extensions are deprecated{'\n'}</Text>

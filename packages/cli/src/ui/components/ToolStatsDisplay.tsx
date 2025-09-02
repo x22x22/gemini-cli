@@ -63,7 +63,7 @@ export const ToolStatsDisplay: React.FC = () => {
     return (
       <Box
         borderStyle="round"
-        borderColor={semanticTheme.text.secondary}
+        borderColor={semanticTheme.border.default}
         paddingY={1}
         paddingX={2}
       >
@@ -94,7 +94,7 @@ export const ToolStatsDisplay: React.FC = () => {
   return (
     <Box
       borderStyle="round"
-      borderColor={semanticTheme.text.secondary}
+      borderColor={semanticTheme.border.default}
       flexDirection="column"
       paddingY={1}
       paddingX={2}
