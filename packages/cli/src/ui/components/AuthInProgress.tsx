@@ -52,7 +52,7 @@ export function AuthInProgress({
         </Text>
       ) : (
         <Box>
-          <Text>
+          <Text color={semanticTheme.text.primary}>
             <Spinner type="dots" /> Waiting for auth... (Press ESC or CTRL+C to
             cancel)
           </Text>

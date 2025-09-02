@@ -45,19 +45,21 @@ export function WorkspaceMigrationDialog(props: {
       >
         {failedExtensions.length > 0 ? (
           <>
-            <Text>
+            <Text color={semanticTheme.text.primary}>
               The following extensions failed to migrate. Please try installing
               them manually. To see other changes, Gemini CLI must be restarted.
               Press {"'q'"} to quit.
             </Text>
             <Box flexDirection="column" marginTop={1} marginLeft={2}>
               {failedExtensions.map((failed) => (
-                <Text key={failed}>- {failed}</Text>
+                <Text key={failed} color={semanticTheme.text.primary}>
+                  - {failed}
+                </Text>
               ))}
             </Box>
           </>
         ) : (
-          <Text>
+          <Text color={semanticTheme.text.primary}>
             Migration complete. To see changes, Gemini CLI must be restarted.
             Press {"'q'"} to quit.
           </Text>
@@ -73,19 +75,25 @@ export function WorkspaceMigrationDialog(props: {
       borderColor={semanticTheme.border.default}
       padding={1}
     >
-      <Text bold>Workspace-level extensions are deprecated{'\n'}</Text>
-      <Text>Would you like to install them at the user level?</Text>
-      <Text>
+      <Text bold color={semanticTheme.text.primary}>
+        Workspace-level extensions are deprecated{'\n'}
+      </Text>
+      <Text color={semanticTheme.text.primary}>
+        Would you like to install them at the user level?
+      </Text>
+      <Text color={semanticTheme.text.primary}>
         The extension definition will remain in your workspace directory.
       </Text>
-      <Text>
+      <Text color={semanticTheme.text.primary}>
         If you opt to skip, you can install them manually using the extensions
         install command.
       </Text>
 
       <Box flexDirection="column" marginTop={1} marginLeft={2}>
         {workspaceExtensions.map((extension) => (
-          <Text key={extension.config.name}>- {extension.config.name}</Text>
+          <Text key={extension.config.name} color={semanticTheme.text.primary}>
+            - {extension.config.name}
+          </Text>
         ))}
       </Box>
       <Box marginTop={1}>

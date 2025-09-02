@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
           <Text>{displayTitle}</Text>
         </Gradient>
       ) : (
-        <Text>{displayTitle}</Text>
+        <Text color={semanticTheme.text.primary}>{displayTitle}</Text>
       )}
       {nightly && (
         <Box width="100%" flexDirection="row" justifyContent="flex-end">
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
               <Text>v{version}</Text>
             </Gradient>
           ) : (
-            <Text>v{version}</Text>
+            <Text color={semanticTheme.text.primary}>v{version}</Text>
           )}
         </Box>
       )}
