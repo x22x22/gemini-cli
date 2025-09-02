@@ -7,7 +7,7 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
 import Gradient from 'ink-gradient';
-import { Colors } from '../colors.js';
+import { theme as semanticTheme } from '../semantic-colors.js';
 import { shortAsciiLogo, longAsciiLogo, tinyAsciiLogo } from './AsciiArt.js';
 import { getAsciiArtWidth } from '../utils/textUtils.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
@@ -47,8 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
       flexShrink={0}
       flexDirection="column"
     >
-      {Colors.GradientColors ? (
-        <Gradient colors={Colors.GradientColors}>
+      {semanticTheme.ui.gradient ? (
+        <Gradient colors={semanticTheme.ui.gradient}>
           <Text>{displayTitle}</Text>
         </Gradient>
       ) : (
@@ -56,8 +56,8 @@ export const Header: React.FC<HeaderProps> = ({
       )}
       {nightly && (
         <Box width="100%" flexDirection="row" justifyContent="flex-end">
-          {Colors.GradientColors ? (
-            <Gradient colors={Colors.GradientColors}>
+          {semanticTheme.ui.gradient ? (
+            <Gradient colors={semanticTheme.ui.gradient}>
               <Text>v{version}</Text>
             </Gradient>
           ) : (

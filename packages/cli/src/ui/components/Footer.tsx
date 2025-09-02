@@ -105,7 +105,7 @@ export const Footer: React.FC<FooterProps> = ({
           <Text color={theme.status.warning}>untrusted</Text>
         ) : process.env['SANDBOX'] &&
           process.env['SANDBOX'] !== 'sandbox-exec' ? (
-          <Text color="green">
+          <Text color={theme.status.success}>
             {process.env['SANDBOX'].replace(/^gemini-(?:cli-)?/, '')}
           </Text>
         ) : process.env['SANDBOX'] === 'sandbox-exec' ? (
