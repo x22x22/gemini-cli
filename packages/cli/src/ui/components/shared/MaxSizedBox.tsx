@@ -81,17 +81,18 @@ interface MaxSizedBoxProps {
  *   are used as children.
  *
  * @example
+ * // const { theme } = useTheme();
  * <MaxSizedBox maxWidth={80} maxHeight={10}>
  *   <Box>
  *     <Text>This is the first line.</Text>
  *   </Box>
  *   <Box>
- *     <Text color="cyan" wrap="truncate">Non-wrapping Header: </Text>
+ *     <Text color={theme.colors.text.accent} wrap="truncate">Non-wrapping Header: </Text>
  *     <Text>This is the rest of the line which will wrap if it's too long.</Text>
  *   </Box>
  *   <Box>
  *     <Text>
- *       Line 3 with <Text color="yellow">nested styled text</Text> inside of it.
+ *       Line 3 with <Text color={theme.colors.status.warning}>nested styled text</Text> inside of it.
  *     </Text>
  *   </Box>
  * </MaxSizedBox>
