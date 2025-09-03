@@ -6,7 +6,6 @@
 
 import type React from 'react';
 import { Box, Text, useIsScreenReaderEnabled } from 'ink';
-
 import crypto from 'node:crypto';
 import { colorizeCode, colorizeLine } from '../../utils/CodeColorizer.js';
 import { MaxSizedBox } from '../shared/MaxSizedBox.js';
