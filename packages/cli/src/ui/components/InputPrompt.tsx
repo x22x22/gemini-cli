@@ -23,7 +23,6 @@ import { useKeypress } from '../hooks/useKeypress.js';
 import { keyMatchers, Command } from '../keyMatchers.js';
 import type { CommandContext, SlashCommand } from '../commands/types.js';
 import type { Config } from '@google/gemini-cli-core';
-import { parseInputForHighlighting } from '../utils/highlight.js';
 import {
   clipboardHasImage,
   saveClipboardImage,
@@ -723,87 +722,69 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
           ) : (
             linesToRender
               .map((lineText, visualIdxInRenderedSet) => {
-                const tokens = parseInputForHighlighting(lineText);
                 const cursorVisualRow =
                   cursorVisualRowAbsolute - scrollVisualRow;
+                let display = cpSlice(lineText, 0, inputWidth);
+
                 const isOnCursorLine =
                   focus && visualIdxInRenderedSet === cursorVisualRow;
-
-                const renderedLine: React.ReactNode[] = [];
-                let charCount = 0;
-
-                tokens.forEach((token, tokenIdx) => {
-                  let display = token.text;
-                  if (isOnCursorLine) {
-                    const relativeVisualColForHighlight =
-                      cursorVisualColAbsolute;
-                    const tokenStart = charCount;
-                    const tokenEnd = tokenStart + cpLen(token.text);
-
-                    if (
-                      relativeVisualColForHighlight >= tokenStart &&
-                      relativeVisualColForHighlight < tokenEnd
-                    ) {
-                      const charToHighlight = cpSlice(
-                        token.text,
-                        relativeVisualColForHighlight - tokenStart,
-                        relativeVisualColForHighlight - tokenStart + 1,
-                      );
-                      const highlighted = chalk.inverse(charToHighlight);
-                      display =
-                        cpSlice(
-                          token.text,
-                          0,
-                          relativeVisualColForHighlight - tokenStart,
-                        ) +
-                        highlighted +
-                        cpSlice(
-                          token.text,
-                          relativeVisualColForHighlight - tokenStart + 1,
-                        );
-                    }
-                    charCount = tokenEnd;
-                  }
-
-                  const color =
-                    token.type === 'command' || token.type === 'file'
-                      ? theme.text.accent
-                      : undefined;
-
-                  renderedLine.push(
-                    <Text key={`token-${tokenIdx}`} color={color}>
-                      {display}
-                    </Text>,
-                  );
-                });
                 const currentLineGhost = isOnCursorLine ? inlineGhost : '';
 
-                if (
-                  isOnCursorLine &&
-                  cursorVisualColAbsolute === cpLen(lineText)
-                ) {
-                  if (!currentLineGhost) {
-                    renderedLine.push(
-                      <Text key="cursor-end">{chalk.inverse(' ')}</Text>,
-                    );
+                const ghostWidth = stringWidth(currentLineGhost);
+
+                if (focus && visualIdxInRenderedSet === cursorVisualRow) {
+                  const relativeVisualColForHighlight = cursorVisualColAbsolute;
+
+                  if (relativeVisualColForHighlight >= 0) {
+                    if (relativeVisualColForHighlight < cpLen(display)) {
+                      const charToHighlight =
+                        cpSlice(
+                          display,
+                          relativeVisualColForHighlight,
+                          relativeVisualColForHighlight + 1,
+                        ) || ' ';
+                      const highlighted = chalk.inverse(charToHighlight);
+                      display =
+                        cpSlice(display, 0, relativeVisualColForHighlight) +
+                        highlighted +
+                        cpSlice(display, relativeVisualColForHighlight + 1);
+                    } else if (
+                      relativeVisualColForHighlight === cpLen(display)
+                    ) {
+                      if (!currentLineGhost) {
+                        display = display + chalk.inverse(' ');
+                      }
+                    }
                   }
                 }
 
                 const showCursorBeforeGhost =
                   focus &&
-                  isOnCursorLine &&
-                  cursorVisualColAbsolute === cpLen(lineText) &&
+                  visualIdxInRenderedSet === cursorVisualRow &&
+                  cursorVisualColAbsolute ===
+                    // eslint-disable-next-line no-control-regex
+                    cpLen(display.replace(/\x1b\[[0-9;]*m/g, '')) &&
                   currentLineGhost;
+
+                const actualDisplayWidth = stringWidth(display);
+                const cursorWidth = showCursorBeforeGhost ? 1 : 0;
+                const totalContentWidth =
+                  actualDisplayWidth + cursorWidth + ghostWidth;
+                const trailingPadding = Math.max(
+                  0,
+                  inputWidth - totalContentWidth,
+                );
 
                 return (
                   <Text key={`line-${visualIdxInRenderedSet}`}>
-                    {renderedLine}
+                    {display}
                     {showCursorBeforeGhost && chalk.inverse(' ')}
                     {currentLineGhost && (
                       <Text color={theme.text.secondary}>
                         {currentLineGhost}
                       </Text>
                     )}
+                    {trailingPadding > 0 && ' '.repeat(trailingPadding)}
                   </Text>
                 );
               })
