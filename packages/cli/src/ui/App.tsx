@@ -46,7 +46,7 @@ import { EditorSettingsDialog } from './components/EditorSettingsDialog.js';
 import { FolderTrustDialog } from './components/FolderTrustDialog.js';
 import { ShellConfirmationDialog } from './components/ShellConfirmationDialog.js';
 import { RadioButtonSelect } from './components/shared/RadioButtonSelect.js';
-import { theme as semanticTheme } from './semantic-colors.js';
+import { theme as semanticTheme, theme } from './semantic-colors.js';
 import { loadHierarchicalGeminiMemory } from '../config/config.js';
 import type { LoadedSettings } from '../config/settings.js';
 import { SettingScope } from '../config/settings.js';
@@ -1124,10 +1124,10 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
           ) : showIdeRestartPrompt ? (
             <Box
               borderStyle="round"
-              borderColor={Colors.AccentYellow}
+              borderColor={theme.status.warning}
               paddingX={1}
             >
-              <Text color={Colors.AccentYellow}>
+              <Text color={theme.status.warning}>
                 Workspace trust has changed. Press &apos;r&apos; to restart
                 Gemini to apply the changes.
               </Text>
