@@ -164,7 +164,9 @@ const MarkdownDisplayInternal: React.FC<MarkdownDisplayProps> = ({
     } else if (hrMatch) {
       addContentBlock(
         <Box key={key}>
-          <Text dimColor>---</Text>
+          <Text dimColor color={semanticTheme.border.default}>
+            ---
+          </Text>
         </Box>,
       );
     } else if (headerMatch) {

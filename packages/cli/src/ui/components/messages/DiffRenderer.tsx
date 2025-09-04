@@ -131,7 +131,7 @@ export const DiffRenderer: React.FC<DiffRendererProps> = ({
     return (
       <Box flexDirection="column">
         {parsedLines.map((line, index) => (
-          <Text key={index}>
+          <Text key={index} color={theme.semanticColors.text.primary}>
             {line.type}: {line.content}
           </Text>
         ))}
@@ -325,8 +325,10 @@ const renderDiffContent = (
             </Text>
             {line.type === 'context' ? (
               <>
-                <Text>{prefixSymbol} </Text>
-                <Text wrap="wrap">
+                <Text color={theme.semanticColors.text.primary}>
+                  {prefixSymbol}{' '}
+                </Text>
+                <Text wrap="wrap" color={theme.semanticColors.text.primary}>
                   {colorizeLine(displayContent, language)}
                 </Text>
               </>
