@@ -27,6 +27,7 @@ import { useLoadingIndicator } from './hooks/useLoadingIndicator.js';
 import { useThemeCommand } from './hooks/useThemeCommand.js';
 import { useAuthCommand } from './hooks/useAuthCommand.js';
 import { useFolderTrust } from './hooks/useFolderTrust.js';
+import { useIdeTrustListener } from './hooks/useIdeTrustListener.js';
 import { useEditorSettings } from './hooks/useEditorSettings.js';
 import { useSlashCommandProcessor } from './hooks/slashCommandProcessor.js';
 import { useAutoAcceptIndicator } from './hooks/useAutoAcceptIndicator.js';
@@ -232,6 +233,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     IdeContext | undefined
   >();
   const [showEscapePrompt, setShowEscapePrompt] = useState(false);
+  const [showIdeRestartPrompt, setShowIdeRestartPrompt] = useState(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const {
@@ -306,6 +308,23 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
   const { isFolderTrustDialogOpen, handleFolderTrustSelect, isRestarting } =
     useFolderTrust(settings, setIsTrustedFolder);
 
+  const { needsRestart: ideNeedsRestart } = useIdeTrustListener(config);
+  useEffect(() => {
+    if (ideNeedsRestart) {
+      // IDE trust changed, force a restart.
+      setShowIdeRestartPrompt(true);
+    }
+  }, [ideNeedsRestart]);
+
+  useKeypress(
+    (key) => {
+      if (key.name === 'r' || key.name === 'R') {
+        process.exit(0);
+      }
+    },
+    { isActive: showIdeRestartPrompt },
+  );
+
   const {
     isAuthDialogOpen,
     openAuthDialog,
@@ -316,6 +335,16 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
   useEffect(() => {
     if (
+      settings.merged.security?.auth?.enforcedType &&
+      settings.merged.security?.auth.selectedType &&
+      settings.merged.security?.auth.enforcedType !==
+        settings.merged.security?.auth.selectedType
+    ) {
+      setAuthError(
+        `Authentication is enforced to be ${settings.merged.security?.auth.enforcedType}, but you are currently using ${settings.merged.security?.auth.selectedType}.`,
+      );
+      openAuthDialog();
+    } else if (
       settings.merged.security?.auth?.selectedType &&
       !settings.merged.security?.auth?.useExternal
     ) {
@@ -329,6 +358,7 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
     }
   }, [
     settings.merged.security?.auth?.selectedType,
+    settings.merged.security?.auth?.enforcedType,
     settings.merged.security?.auth?.useExternal,
     openAuthDialog,
     setAuthError,
@@ -739,8 +769,10 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
 
   const { handleInput: vimHandleInput } = useVim(buffer, handleFinalSubmit);
 
-  const { elapsedTime, currentLoadingPhrase } =
-    useLoadingIndicator(streamingState);
+  const { elapsedTime, currentLoadingPhrase } = useLoadingIndicator(
+    streamingState,
+    settings.merged.ui?.customWittyPhrases,
+  );
   const showAutoAcceptIndicator = useAutoAcceptIndicator({ config, addItem });
 
   const handleExit = useCallback(
@@ -1102,6 +1134,17 @@ const App = ({ config, settings, startupWarnings = [], version }: AppProps) => {
                 }
               }}
             />
+          ) : showIdeRestartPrompt ? (
+            <Box
+              borderStyle="round"
+              borderColor={Colors.AccentYellow}
+              paddingX={1}
+            >
+              <Text color={Colors.AccentYellow}>
+                Workspace trust has changed. Press &apos;r&apos; to restart
+                Gemini to apply the changes.
+              </Text>
+            </Box>
           ) : isFolderTrustDialogOpen ? (
             <FolderTrustDialog
               onSelect={handleFolderTrustSelect}
