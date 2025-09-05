@@ -13,11 +13,17 @@ import type {
   OAuthCredentials,
   TokenStorage,
 } from './token-storage/types.js';
+import {HybridTokenStorage} from './token-storage/hybrid-token-storage.js';
+import { DEFAULT_SERVICE_NAME, FORCE_ENCRYPTED_FILE_ENV_VAR } from './token-storage/index.js';
 
 /**
  * Class for managing MCP OAuth token storage and retrieval.
  */
 export class MCPOAuthTokenStorage implements TokenStorage {
+  private readonly hybridTokenStorage = new HybridTokenStorage(DEFAULT_SERVICE_NAME);
+  private readonly useEncryptedFile = process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] === 'true';
+
+
   /**
    * Get the path to the token storage file.
    *
@@ -41,6 +47,9 @@ export class MCPOAuthTokenStorage implements TokenStorage {
    * @returns A map of server names to credentials
    */
   async getAllCredentials(): Promise<Map<string, OAuthCredentials>> {
+    if(this.useEncryptedFile) {
+      return this.hybridTokenStorage.getAllCredentials();
+    }
     const tokenMap = new Map<string, OAuthCredentials>();
 
     try {
