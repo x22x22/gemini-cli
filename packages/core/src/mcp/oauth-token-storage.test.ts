@@ -374,6 +374,13 @@ describe('MCPOAuthTokenStorage', () => {
       vi.restoreAllMocks();
     });
 
+    it('should use HybridTokenStorage to list all credentials', async () => {
+      mockHybridTokenStorage.getAllCredentials.mockResolvedValue(new Map());
+      const servers = await tokenStorage.getAllCredentials();
+      expect(mockHybridTokenStorage.getAllCredentials).toHaveBeenCalled();
+      expect(servers).toEqual(new Map());
+    });
+
     it('should use HybridTokenStorage to list servers', async () => {
       mockHybridTokenStorage.listServers.mockResolvedValue(['server1']);
       const servers = await tokenStorage.listServers();
