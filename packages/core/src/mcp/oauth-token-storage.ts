@@ -47,9 +47,6 @@ export class MCPOAuthTokenStorage implements TokenStorage {
    * @returns A map of server names to credentials
    */
   async getAllCredentials(): Promise<Map<string, OAuthCredentials>> {
-    if(this.useEncryptedFile) {
-      return this.hybridTokenStorage.getAllCredentials();
-    }
     const tokenMap = new Map<string, OAuthCredentials>();
 
     try {
