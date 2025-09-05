@@ -57,6 +57,9 @@ import { WorkspaceContext } from '../utils/workspaceContext.js';
 import { Storage } from './storage.js';
 import { FileExclusions } from '../utils/ignorePatterns.js';
 import type { EventEmitter } from 'node:events';
+import { MessageBus } from '../confirmation-bus/message-bus.js';
+import { PolicyEngine } from '../policy/policy-engine.js';
+import type { PolicyEngineConfig } from '../policy/types.js';
 
 export enum ApprovalMode {
   DEFAULT = 'default',
@@ -212,6 +215,7 @@ export interface ConfigParameters {
   enablePromptCompletion?: boolean;
   eventEmitter?: EventEmitter;
   useSmartEdit?: boolean;
+  policyEngineConfig?: PolicyEngineConfig;
 }
 
 export class Config {
@@ -289,6 +293,8 @@ export class Config {
   private readonly fileExclusions: FileExclusions;
   private readonly eventEmitter?: EventEmitter;
   private readonly useSmartEdit: boolean;
+  private readonly messageBus: MessageBus;
+  private readonly policyEngine: PolicyEngine;
 
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
@@ -365,6 +371,8 @@ export class Config {
     this.enablePromptCompletion = params.enablePromptCompletion ?? false;
     this.fileExclusions = new FileExclusions(this);
     this.eventEmitter = params.eventEmitter;
+    this.policyEngine = new PolicyEngine(params.policyEngineConfig);
+    this.messageBus = new MessageBus(this.policyEngine);
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
@@ -832,6 +840,14 @@ export class Config {
 
   getFileExclusions(): FileExclusions {
     return this.fileExclusions;
+  }
+
+  getMessageBus(): MessageBus {
+    return this.messageBus;
+  }
+
+  getPolicyEngine(): PolicyEngine {
+    return this.policyEngine;
   }
 
   async createToolRegistry(): Promise<ToolRegistry> {
