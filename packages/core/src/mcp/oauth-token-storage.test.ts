@@ -360,11 +360,11 @@ describe('MCPOAuthTokenStorage', () => {
 
   describe('with encrypted flag true', () => {
     beforeEach(() => {
+      process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'true';
       (HybridTokenStorage as Mock).mockImplementation(
         () => mockHybridTokenStorage,
       );
       tokenStorage = new MCPOAuthTokenStorage();
-      process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'true';
 
       vi.clearAllMocks();
       vi.spyOn(console, 'error').mockImplementation(() => {});
