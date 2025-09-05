@@ -73,11 +73,17 @@ export class MCPOAuthTokenStorage implements TokenStorage {
   }
 
   async listServers(): Promise<string[]> {
+    if(this.useEncryptedFile) {
+      return this.hybridTokenStorage.listServers();
+    }
     const tokens = await this.getAllCredentials();
     return Array.from(tokens.keys());
   }
 
   async setCredentials(credentials: OAuthCredentials): Promise<void> {
+    if(this.useEncryptedFile) {
+      return this.hybridTokenStorage.setCredentials(credentials);
+    }
     const tokens = await this.getAllCredentials();
     tokens.set(credentials.serverName, credentials);
 
@@ -125,6 +131,9 @@ export class MCPOAuthTokenStorage implements TokenStorage {
       updatedAt: Date.now(),
     };
 
+    if(this.useEncryptedFile) {
+      return this.hybridTokenStorage.setCredentials(credential);
+    }
     await this.setCredentials(credential);
   }
 
@@ -135,6 +144,9 @@ export class MCPOAuthTokenStorage implements TokenStorage {
    * @returns The stored credentials or null if not found
    */
   async getCredentials(serverName: string): Promise<OAuthCredentials | null> {
+    if(this.useEncryptedFile) {
+      return this.hybridTokenStorage.getCredentials(serverName);
+    }
     const tokens = await this.getAllCredentials();
     return tokens.get(serverName) || null;
   }
@@ -145,6 +157,9 @@ export class MCPOAuthTokenStorage implements TokenStorage {
    * @param serverName The name of the MCP server
    */
   async deleteCredentials(serverName: string): Promise<void> {
+    if(this.useEncryptedFile) {
+      return this.hybridTokenStorage.deleteCredentials(serverName);
+    }
     const tokens = await this.getAllCredentials();
 
     if (tokens.delete(serverName)) {
@@ -188,6 +203,9 @@ export class MCPOAuthTokenStorage implements TokenStorage {
    * Clear all stored MCP OAuth tokens.
    */
   async clearAll(): Promise<void> {
+    if(this.useEncryptedFile) {
+      return this.hybridTokenStorage.clearAll();
+    }
     try {
       const tokenFile = this.getTokenFilePath();
       await fs.unlink(tokenFile);
