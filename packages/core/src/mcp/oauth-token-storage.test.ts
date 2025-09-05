@@ -356,88 +356,86 @@ describe('MCPOAuthTokenStorage', () => {
         );
       });
     });
+  });
 
-    describe('with encrypted flag true', () => {
-      beforeEach(() => {
-        (HybridTokenStorage as Mock).mockImplementation(
-          () => mockHybridTokenStorage,
-        );
-        tokenStorage = new MCPOAuthTokenStorage();
-        process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'true';
+  describe('with encrypted flag true', () => {
+    beforeEach(() => {
+      (HybridTokenStorage as Mock).mockImplementation(
+        () => mockHybridTokenStorage,
+      );
+      tokenStorage = new MCPOAuthTokenStorage();
+      process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'true';
 
-        vi.clearAllMocks();
-        vi.spyOn(console, 'error').mockImplementation(() => {});
-      });
+      vi.clearAllMocks();
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
 
-      afterEach(() => {
-        vi.restoreAllMocks();
-      });
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
 
-      it('should use HybridTokenStorage to list servers', async () => {
-        mockHybridTokenStorage.listServers.mockResolvedValue(['server1']);
-        const servers = await tokenStorage.listServers();
-        expect(mockHybridTokenStorage.listServers).toHaveBeenCalled();
-        expect(servers).toEqual(['server1']);
-      });
+    it('should use HybridTokenStorage to list servers', async () => {
+      mockHybridTokenStorage.listServers.mockResolvedValue(['server1']);
+      const servers = await tokenStorage.listServers();
+      expect(mockHybridTokenStorage.listServers).toHaveBeenCalled();
+      expect(servers).toEqual(['server1']);
+    });
 
-      it('should use HybridTokenStorage to set credentials', async () => {
-        await tokenStorage.setCredentials(mockCredentials);
-        expect(mockHybridTokenStorage.setCredentials).toHaveBeenCalledWith(
-          mockCredentials,
-        );
-      });
+    it('should use HybridTokenStorage to set credentials', async () => {
+      await tokenStorage.setCredentials(mockCredentials);
+      expect(mockHybridTokenStorage.setCredentials).toHaveBeenCalledWith(
+        mockCredentials,
+      );
+    });
 
-      it('should use HybridTokenStorage to save a token', async () => {
-        const serverName = 'server1';
-        const now = Date.now();
-        vi.spyOn(Date, 'now').mockReturnValue(now);
+    it('should use HybridTokenStorage to save a token', async () => {
+      const serverName = 'server1';
+      const now = Date.now();
+      vi.spyOn(Date, 'now').mockReturnValue(now);
 
-        await tokenStorage.saveToken(
-          serverName,
-          mockToken,
-          'clientId',
-          'tokenUrl',
-          'mcpUrl',
-        );
+      await tokenStorage.saveToken(
+        serverName,
+        mockToken,
+        'clientId',
+        'tokenUrl',
+        'mcpUrl',
+      );
 
-        const expectedCredential: OAuthCredentials = {
-          serverName,
-          token: mockToken,
-          clientId: 'clientId',
-          tokenUrl: 'tokenUrl',
-          mcpServerUrl: 'mcpUrl',
-          updatedAt: now,
-        };
+      const expectedCredential: OAuthCredentials = {
+        serverName,
+        token: mockToken,
+        clientId: 'clientId',
+        tokenUrl: 'tokenUrl',
+        mcpServerUrl: 'mcpUrl',
+        updatedAt: now,
+      };
 
-        expect(mockHybridTokenStorage.setCredentials).toHaveBeenCalledWith(
-          expectedCredential,
-        );
-        expect(path.dirname).toHaveBeenCalled();
-        expect(fs.mkdir).toHaveBeenCalled();
-      });
+      expect(mockHybridTokenStorage.setCredentials).toHaveBeenCalledWith(
+        expectedCredential,
+      );
+      expect(path.dirname).toHaveBeenCalled();
+      expect(fs.mkdir).toHaveBeenCalled();
+    });
 
-      it('should use HybridTokenStorage to get credentials', async () => {
-        mockHybridTokenStorage.getCredentials.mockResolvedValue(
-          mockCredentials,
-        );
-        const result = await tokenStorage.getCredentials('server1');
-        expect(mockHybridTokenStorage.getCredentials).toHaveBeenCalledWith(
-          'server1',
-        );
-        expect(result).toBe(mockCredentials);
-      });
+    it('should use HybridTokenStorage to get credentials', async () => {
+      mockHybridTokenStorage.getCredentials.mockResolvedValue(mockCredentials);
+      const result = await tokenStorage.getCredentials('server1');
+      expect(mockHybridTokenStorage.getCredentials).toHaveBeenCalledWith(
+        'server1',
+      );
+      expect(result).toBe(mockCredentials);
+    });
 
-      it('should use HybridTokenStorage to delete credentials', async () => {
-        await tokenStorage.deleteCredentials('server1');
-        expect(mockHybridTokenStorage.deleteCredentials).toHaveBeenCalledWith(
-          'server1',
-        );
-      });
+    it('should use HybridTokenStorage to delete credentials', async () => {
+      await tokenStorage.deleteCredentials('server1');
+      expect(mockHybridTokenStorage.deleteCredentials).toHaveBeenCalledWith(
+        'server1',
+      );
+    });
 
-      it('should use HybridTokenStorage to clear all tokens', async () => {
-        await tokenStorage.clearAll();
-        expect(mockHybridTokenStorage.clearAll).toHaveBeenCalled();
-      });
+    it('should use HybridTokenStorage to clear all tokens', async () => {
+      await tokenStorage.clearAll();
+      expect(mockHybridTokenStorage.clearAll).toHaveBeenCalled();
     });
   });
 });
