@@ -79,13 +79,40 @@ export class PolicyEngine {
       if (!toolCall.args) {
         return false;
       }
-      const argsString = JSON.stringify(toolCall.args);
+      // Use stable JSON stringification with sorted keys to ensure consistent matching
+      const argsString = this.stableStringify(toolCall.args);
       if (!rule.argsPattern.test(argsString)) {
         return false;
       }
     }
 
     return true;
+  }
+
+  /**
+   * Produces a stable JSON string representation with sorted keys.
+   * This ensures consistent pattern matching regardless of property order.
+   */
+  private stableStringify(obj: unknown): string {
+    if (obj === null || obj === undefined) {
+      return JSON.stringify(obj);
+    }
+    
+    if (typeof obj !== 'object') {
+      return JSON.stringify(obj);
+    }
+    
+    if (Array.isArray(obj)) {
+      return '[' + obj.map(item => this.stableStringify(item)).join(',') + ']';
+    }
+    
+    // Sort object keys and recursively stringify
+    const sortedKeys = Object.keys(obj).sort();
+    const pairs = sortedKeys.map(key => {
+      const value = (obj as Record<string, unknown>)[key];
+      return JSON.stringify(key) + ':' + this.stableStringify(value);
+    });
+    return '{' + pairs.join(',') + '}';
   }
 
   private applyNonInteractiveMode(decision: PolicyDecision): PolicyDecision {

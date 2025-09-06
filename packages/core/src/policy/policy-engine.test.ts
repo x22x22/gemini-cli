@@ -270,5 +270,64 @@ describe('PolicyEngine', () => {
         PolicyDecision.DENY,
       );
     });
+
+    it('should match args pattern regardless of property order', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'shell',
+          // Pattern matches the stable stringified format
+          argsPattern: /"command":"rm[^"]*-rf/,
+          decision: PolicyDecision.DENY,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      // Same args with different property order should both match
+      const args1 = { command: 'rm -rf /', path: '/home' };
+      const args2 = { path: '/home', command: 'rm -rf /' };
+
+      expect(engine.check({ name: 'shell', args: args1 })).toBe(
+        PolicyDecision.DENY,
+      );
+      expect(engine.check({ name: 'shell', args: args2 })).toBe(
+        PolicyDecision.DENY,
+      );
+
+      // Verify safe command doesn't match
+      const safeArgs = { command: 'ls -la', path: '/home' };
+      expect(engine.check({ name: 'shell', args: safeArgs })).toBe(
+        PolicyDecision.ASK_USER,
+      );
+    });
+
+    it('should handle nested objects in args with stable stringification', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'api',
+          argsPattern: /"sensitive":true/,
+          decision: PolicyDecision.DENY,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      // Nested objects with different key orders should match consistently
+      const args1 = {
+        data: { sensitive: true, value: 'secret' },
+        method: 'POST',
+      };
+      const args2 = {
+        method: 'POST',
+        data: { value: 'secret', sensitive: true },
+      };
+
+      expect(engine.check({ name: 'api', args: args1 })).toBe(
+        PolicyDecision.DENY,
+      );
+      expect(engine.check({ name: 'api', args: args2 })).toBe(
+        PolicyDecision.DENY,
+      );
+    });
   });
 });
