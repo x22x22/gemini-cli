@@ -98,7 +98,7 @@ export class PolicyEngine {
   private stableStringify(obj: unknown): string {
     const stringify = (
       currentObj: unknown,
-      ancestors: Set<unknown>
+      ancestors: Set<unknown>,
     ): string => {
       // Handle primitives and null
       if (currentObj === undefined) {
@@ -137,15 +137,17 @@ export class PolicyEngine {
       // Handle objects - sort keys and filter out undefined/function values
       const sortedKeys = Object.keys(currentObj).sort();
       const pairs: string[] = [];
-      
+
       for (const key of sortedKeys) {
         const value = (currentObj as Record<string, unknown>)[key];
         // Skip undefined and function values in objects (per JSON spec)
         if (value !== undefined && typeof value !== 'function') {
-          pairs.push(JSON.stringify(key) + ':' + stringify(value, newAncestors));
+          pairs.push(
+            JSON.stringify(key) + ':' + stringify(value, newAncestors),
+          );
         }
       }
-      
+
       return '{' + pairs.join(',') + '}';
     };
 

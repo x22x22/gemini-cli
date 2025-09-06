@@ -508,20 +508,24 @@ describe('PolicyEngine', () => {
     });
 
     it('should produce valid JSON for all inputs', () => {
-      const testCases = [
-        { input: { simple: 'string' }, desc: 'simple object' },
-        { input: { nested: { deep: { value: 123 } } }, desc: 'nested object' },
-        { input: [1, 2, 3], desc: 'simple array' },
-        { input: { mixed: [1, { a: 'b' }, null] }, desc: 'mixed array' },
-        {
-          input: { undef: undefined, func: () => {}, normal: 'value' },
-          desc: 'object with undefined and function',
-        },
-        {
-          input: ['a', undefined, () => {}, null],
-          desc: 'array with undefined and function',
-        },
-      ];
+      const testCases: Array<{ input: Record<string, unknown>; desc: string }> =
+        [
+          { input: { simple: 'string' }, desc: 'simple object' },
+          {
+            input: { nested: { deep: { value: 123 } } },
+            desc: 'nested object',
+          },
+          { input: { data: [1, 2, 3] }, desc: 'simple array' },
+          { input: { mixed: [1, { a: 'b' }, null] }, desc: 'mixed array' },
+          {
+            input: { undef: undefined, func: () => {}, normal: 'value' },
+            desc: 'object with undefined and function',
+          },
+          {
+            input: { data: ['a', undefined, () => {}, null] },
+            desc: 'array with undefined and function',
+          },
+        ];
 
       for (const { input } of testCases) {
         const rules: PolicyRule[] = [
@@ -534,9 +538,7 @@ describe('PolicyEngine', () => {
         engine = new PolicyEngine({ rules });
 
         // Should not throw when checking (which internally uses stableStringify)
-        expect(() =>
-          engine.check({ name: 'test', args: input }),
-        ).not.toThrow();
+        expect(() => engine.check({ name: 'test', args: input })).not.toThrow();
 
         // The check should succeed
         expect(engine.check({ name: 'test', args: input })).toBe(
