@@ -410,5 +410,139 @@ describe('PolicyEngine', () => {
         PolicyDecision.DENY,
       );
     });
+
+    it('should handle repeated non-circular objects correctly', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /\[Circular\]/,
+          decision: PolicyDecision.DENY,
+        },
+        {
+          toolName: 'test',
+          argsPattern: /"value":"shared"/,
+          decision: PolicyDecision.ALLOW,
+          priority: 10,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      // Create an object with repeated references but no cycles
+      const sharedObj = { value: 'shared' };
+      const args = {
+        first: sharedObj,
+        second: sharedObj,
+        third: { nested: sharedObj },
+      };
+
+      // Should NOT mark repeated objects as circular, and should match the shared value pattern
+      expect(engine.check({ name: 'test', args })).toBe(PolicyDecision.ALLOW);
+    });
+
+    it('should omit undefined and function values from objects', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /"definedValue":"test"/,
+          decision: PolicyDecision.ALLOW,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      const args = {
+        definedValue: 'test',
+        undefinedValue: undefined,
+        functionValue: () => 'hello',
+        nullValue: null,
+      };
+
+      // Should match pattern with defined value, undefined and functions omitted
+      expect(engine.check({ name: 'test', args })).toBe(PolicyDecision.ALLOW);
+
+      // Check that the pattern would NOT match if undefined was included
+      const rulesWithUndefined: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /undefinedValue/,
+          decision: PolicyDecision.DENY,
+        },
+      ];
+      engine = new PolicyEngine({ rules: rulesWithUndefined });
+      expect(engine.check({ name: 'test', args })).toBe(
+        PolicyDecision.ASK_USER,
+      );
+
+      // Check that the pattern would NOT match if function was included
+      const rulesWithFunction: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /functionValue/,
+          decision: PolicyDecision.DENY,
+        },
+      ];
+      engine = new PolicyEngine({ rules: rulesWithFunction });
+      expect(engine.check({ name: 'test', args })).toBe(
+        PolicyDecision.ASK_USER,
+      );
+    });
+
+    it('should convert undefined and functions to null in arrays', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /\["value",null,null,null\]/,
+          decision: PolicyDecision.ALLOW,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      const args = {
+        array: ['value', undefined, () => 'hello', null],
+      };
+
+      // Should match pattern with undefined and functions converted to null
+      expect(engine.check({ name: 'test', args })).toBe(PolicyDecision.ALLOW);
+    });
+
+    it('should produce valid JSON for all inputs', () => {
+      const testCases = [
+        { input: { simple: 'string' }, desc: 'simple object' },
+        { input: { nested: { deep: { value: 123 } } }, desc: 'nested object' },
+        { input: [1, 2, 3], desc: 'simple array' },
+        { input: { mixed: [1, { a: 'b' }, null] }, desc: 'mixed array' },
+        {
+          input: { undef: undefined, func: () => {}, normal: 'value' },
+          desc: 'object with undefined and function',
+        },
+        {
+          input: ['a', undefined, () => {}, null],
+          desc: 'array with undefined and function',
+        },
+      ];
+
+      for (const { input } of testCases) {
+        const rules: PolicyRule[] = [
+          {
+            toolName: 'test',
+            argsPattern: /.*/,
+            decision: PolicyDecision.ALLOW,
+          },
+        ];
+        engine = new PolicyEngine({ rules });
+
+        // Should not throw when checking (which internally uses stableStringify)
+        expect(() =>
+          engine.check({ name: 'test', args: input }),
+        ).not.toThrow();
+
+        // The check should succeed
+        expect(engine.check({ name: 'test', args: input })).toBe(
+          PolicyDecision.ALLOW,
+        );
+      }
+    });
   });
 });

@@ -93,43 +93,63 @@ export class PolicyEngine {
    * Produces a stable JSON string representation with sorted keys.
    * This ensures consistent pattern matching regardless of property order.
    * Handles circular references to prevent stack overflow attacks.
+   * Properly handles undefined and function values per JSON spec.
    */
   private stableStringify(obj: unknown): string {
-    const stringify = (currentObj: unknown, seen: WeakSet<object>): string => {
-      if (currentObj === null || currentObj === undefined) {
-        return JSON.stringify(currentObj);
+    const stringify = (
+      currentObj: unknown,
+      ancestors: Set<unknown>
+    ): string => {
+      // Handle primitives and null
+      if (currentObj === undefined) {
+        return 'null'; // undefined in arrays becomes null in JSON
       }
-
+      if (currentObj === null) {
+        return 'null';
+      }
+      if (typeof currentObj === 'function') {
+        return 'null'; // functions in arrays become null in JSON
+      }
       if (typeof currentObj !== 'object') {
         return JSON.stringify(currentObj);
       }
 
-      // Check for circular reference
-      if (seen.has(currentObj)) {
+      // Check for circular reference (object is in ancestor chain)
+      if (ancestors.has(currentObj)) {
         return '"[Circular]"';
       }
-      seen.add(currentObj);
+
+      // Create new ancestors set for this branch
+      const newAncestors = new Set(ancestors);
+      newAncestors.add(currentObj);
 
       if (Array.isArray(currentObj)) {
-        return (
-          '[' +
-          (currentObj as unknown[])
-            .map((item) => stringify(item, seen))
-            .join(',') +
-          ']'
-        );
+        const items = currentObj.map((item) => {
+          // undefined and functions in arrays become null
+          if (item === undefined || typeof item === 'function') {
+            return 'null';
+          }
+          return stringify(item, newAncestors);
+        });
+        return '[' + items.join(',') + ']';
       }
 
-      // Sort object keys and recursively stringify
+      // Handle objects - sort keys and filter out undefined/function values
       const sortedKeys = Object.keys(currentObj).sort();
-      const pairs = sortedKeys.map((key) => {
+      const pairs: string[] = [];
+      
+      for (const key of sortedKeys) {
         const value = (currentObj as Record<string, unknown>)[key];
-        return JSON.stringify(key) + ':' + stringify(value, seen);
-      });
+        // Skip undefined and function values in objects (per JSON spec)
+        if (value !== undefined && typeof value !== 'function') {
+          pairs.push(JSON.stringify(key) + ':' + stringify(value, newAncestors));
+        }
+      }
+      
       return '{' + pairs.join(',') + '}';
     };
 
-    return stringify(obj, new WeakSet());
+    return stringify(obj, new Set());
   }
 
   private applyNonInteractiveMode(decision: PolicyDecision): PolicyDecision {
