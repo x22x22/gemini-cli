@@ -92,27 +92,44 @@ export class PolicyEngine {
   /**
    * Produces a stable JSON string representation with sorted keys.
    * This ensures consistent pattern matching regardless of property order.
+   * Handles circular references to prevent stack overflow attacks.
    */
   private stableStringify(obj: unknown): string {
-    if (obj === null || obj === undefined) {
-      return JSON.stringify(obj);
-    }
-    
-    if (typeof obj !== 'object') {
-      return JSON.stringify(obj);
-    }
-    
-    if (Array.isArray(obj)) {
-      return '[' + obj.map(item => this.stableStringify(item)).join(',') + ']';
-    }
-    
-    // Sort object keys and recursively stringify
-    const sortedKeys = Object.keys(obj).sort();
-    const pairs = sortedKeys.map(key => {
-      const value = (obj as Record<string, unknown>)[key];
-      return JSON.stringify(key) + ':' + this.stableStringify(value);
-    });
-    return '{' + pairs.join(',') + '}';
+    const stringify = (currentObj: unknown, seen: WeakSet<object>): string => {
+      if (currentObj === null || currentObj === undefined) {
+        return JSON.stringify(currentObj);
+      }
+
+      if (typeof currentObj !== 'object') {
+        return JSON.stringify(currentObj);
+      }
+
+      // Check for circular reference
+      if (seen.has(currentObj)) {
+        return '"[Circular]"';
+      }
+      seen.add(currentObj);
+
+      if (Array.isArray(currentObj)) {
+        return (
+          '[' +
+          (currentObj as unknown[])
+            .map((item) => stringify(item, seen))
+            .join(',') +
+          ']'
+        );
+      }
+
+      // Sort object keys and recursively stringify
+      const sortedKeys = Object.keys(currentObj).sort();
+      const pairs = sortedKeys.map((key) => {
+        const value = (currentObj as Record<string, unknown>)[key];
+        return JSON.stringify(key) + ':' + stringify(value, seen);
+      });
+      return '{' + pairs.join(',') + '}';
+    };
+
+    return stringify(obj, new WeakSet());
   }
 
   private applyNonInteractiveMode(decision: PolicyDecision): PolicyDecision {

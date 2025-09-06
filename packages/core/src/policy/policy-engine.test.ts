@@ -329,5 +329,86 @@ describe('PolicyEngine', () => {
         PolicyDecision.DENY,
       );
     });
+
+    it('should handle circular references without stack overflow', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /\[Circular\]/,
+          decision: PolicyDecision.DENY,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      // Create an object with a circular reference
+      type CircularArgs = Record<string, unknown> & {
+        data?: Record<string, unknown>;
+      };
+      const circularArgs: CircularArgs = {
+        name: 'test',
+        data: {},
+      };
+      // Create circular reference - TypeScript allows this since data is Record<string, unknown>
+      (circularArgs.data as Record<string, unknown>)['self'] =
+        circularArgs.data;
+
+      // Should not throw stack overflow error
+      expect(() =>
+        engine.check({ name: 'test', args: circularArgs }),
+      ).not.toThrow();
+
+      // Should detect the circular reference pattern
+      expect(engine.check({ name: 'test', args: circularArgs })).toBe(
+        PolicyDecision.DENY,
+      );
+
+      // Non-circular object should not match
+      const normalArgs = { name: 'test', data: { value: 'normal' } };
+      expect(engine.check({ name: 'test', args: normalArgs })).toBe(
+        PolicyDecision.ASK_USER,
+      );
+    });
+
+    it('should handle deep circular references', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'deep',
+          argsPattern: /\[Circular\]/,
+          decision: PolicyDecision.DENY,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      // Create a deep circular reference
+      type DeepCircular = Record<string, unknown> & {
+        level1?: {
+          level2?: {
+            level3?: Record<string, unknown>;
+          };
+        };
+      };
+      const deepCircular: DeepCircular = {
+        level1: {
+          level2: {
+            level3: {},
+          },
+        },
+      };
+      // Create circular reference with proper type assertions
+      const level3 = deepCircular.level1!.level2!.level3!;
+      level3['back'] = deepCircular.level1;
+
+      // Should handle without stack overflow
+      expect(() =>
+        engine.check({ name: 'deep', args: deepCircular }),
+      ).not.toThrow();
+
+      // Should detect the circular reference
+      expect(engine.check({ name: 'deep', args: deepCircular })).toBe(
+        PolicyDecision.DENY,
+      );
+    });
   });
 });
