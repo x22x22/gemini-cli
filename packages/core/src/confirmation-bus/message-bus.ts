@@ -8,6 +8,7 @@ import { EventEmitter } from 'node:events';
 import type { PolicyEngine } from '../policy/policy-engine.js';
 import { PolicyDecision } from '../policy/types.js';
 import { MessageBusType, type Message } from './types.js';
+import { safeJsonStringify } from '../utils/safeJsonStringify.js';
 
 export class MessageBus extends EventEmitter {
   constructor(private readonly policyEngine: PolicyEngine) {
@@ -37,7 +38,7 @@ export class MessageBus extends EventEmitter {
     try {
       if (!this.isValidMessage(message)) {
         throw new Error(
-          `Invalid message structure: ${JSON.stringify(message)}`,
+          `Invalid message structure: ${safeJsonStringify(message)}`,
         );
       }
 
