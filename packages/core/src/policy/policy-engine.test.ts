@@ -546,5 +546,79 @@ describe('PolicyEngine', () => {
         );
       }
     });
+
+    it('should respect toJSON methods on objects', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /"sanitized":"safe"/,
+          decision: PolicyDecision.ALLOW,
+        },
+        {
+          toolName: 'test',
+          argsPattern: /"dangerous":"data"/,
+          decision: PolicyDecision.DENY,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      // Object with toJSON that sanitizes output
+      const args = {
+        data: {
+          dangerous: 'data',
+          toJSON: () => ({ sanitized: 'safe' }),
+        },
+      };
+
+      // Should match the sanitized pattern, not the dangerous one
+      expect(engine.check({ name: 'test', args })).toBe(PolicyDecision.ALLOW);
+    });
+
+    it('should handle toJSON that returns primitives', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /"value":"string-value"/,
+          decision: PolicyDecision.ALLOW,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      const args = {
+        value: {
+          complex: 'object',
+          toJSON: () => 'string-value',
+        },
+      };
+
+      // toJSON returns a string, which should be properly stringified
+      expect(engine.check({ name: 'test', args })).toBe(PolicyDecision.ALLOW);
+    });
+
+    it('should handle toJSON that throws an error', () => {
+      const rules: PolicyRule[] = [
+        {
+          toolName: 'test',
+          argsPattern: /"fallback":"value"/,
+          decision: PolicyDecision.ALLOW,
+        },
+      ];
+
+      engine = new PolicyEngine({ rules });
+
+      const args = {
+        data: {
+          fallback: 'value',
+          toJSON: () => {
+            throw new Error('toJSON error');
+          },
+        },
+      };
+
+      // Should fall back to regular object serialization when toJSON throws
+      expect(engine.check({ name: 'test', args })).toBe(PolicyDecision.ALLOW);
+    });
   });
 });
