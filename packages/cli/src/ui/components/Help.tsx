@@ -7,7 +7,7 @@
 import type React from 'react';
 import { Box, Text } from 'ink';
 import { theme as semanticTheme } from '../semantic-colors.js';
-import type { SlashCommand } from '../commands/types.js';
+import { type SlashCommand, CommandKind } from '../commands/types.js';
 
 interface Help {
   commands: readonly SlashCommand[];
@@ -65,7 +65,7 @@ export const Help: React.FC<Help> = ({ commands }) => (
       Commands:
     </Text>
     {commands
-      .filter((command) => command.description)
+      .filter((command) => command.description && !command.hidden)
       .map((command: SlashCommand) => (
         <Box key={command.name} flexDirection="column">
           <Text color={semanticTheme.text.primary}>
@@ -73,18 +73,23 @@ export const Help: React.FC<Help> = ({ commands }) => (
               {' '}
               /{command.name}
             </Text>
+            {command.kind === CommandKind.MCP_PROMPT && (
+              <Text color={semanticTheme.text.secondary}> [MCP]</Text>
+            )}
             {command.description && ' - ' + command.description}
           </Text>
           {command.subCommands &&
-            command.subCommands.map((subCommand) => (
-              <Text key={subCommand.name} color={semanticTheme.text.primary}>
-                <Text bold color={semanticTheme.text.accent}>
-                  {'   '}
-                  {subCommand.name}
+            command.subCommands
+              .filter((subCommand) => !subCommand.hidden)
+              .map((subCommand) => (
+                <Text key={subCommand.name} color={semanticTheme.text.primary}>
+                  <Text bold color={semanticTheme.text.accent}>
+                    {'   '}
+                    {subCommand.name}
+                  </Text>
+                  {subCommand.description && ' - ' + subCommand.description}
                 </Text>
-                {subCommand.description && ' - ' + subCommand.description}
-              </Text>
-            ))}
+              ))}
         </Box>
       ))}
     <Text color={semanticTheme.text.primary}>
@@ -93,6 +98,10 @@ export const Help: React.FC<Help> = ({ commands }) => (
         !{' '}
       </Text>
       - shell command
+    </Text>
+    <Text color={semanticTheme.text.primary}>
+      <Text color={semanticTheme.text.secondary}>[MCP]</Text> - Model Context
+      Protocol command (from external servers)
     </Text>
 
     <Box height={1} />
