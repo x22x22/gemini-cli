@@ -24,6 +24,7 @@ import { parse } from 'shell-quote';
 import type { Config, MCPServerConfig } from '../config/config.js';
 import { AuthProviderType } from '../config/config.js';
 import { GoogleCredentialProvider } from '../mcp/google-auth-provider.js';
+import { IAPProvider } from '../mcp/iap-provider.js';
 import { DiscoveredMCPTool } from './mcp-tool.js';
 
 import type { FunctionDeclaration } from '@google/genai';
@@ -410,6 +411,7 @@ async function createTransportWithOAuth(
         oauthTransportOptions,
       );
     } else if (mcpServerConfig.url) {
+      console.log('headers', mcpServerConfig.headers)
       // Create SSE transport with OAuth token in Authorization header
       return new SSEClientTransport(new URL(mcpServerConfig.url), {
         requestInit: {
@@ -1240,9 +1242,13 @@ export async function createTransport(
   debugMode: boolean,
 ): Promise<Transport> {
   if (
-    mcpServerConfig.authProviderType === AuthProviderType.GOOGLE_CREDENTIALS
+    mcpServerConfig.authProviderType === AuthProviderType.GOOGLE_CREDENTIALS ||
+    mcpServerConfig.authProviderType === 'iap'
   ) {
-    const provider = new GoogleCredentialProvider(mcpServerConfig);
+    const provider =
+      mcpServerConfig.authProviderType === 'iap'
+        ? new IAPProvider(mcpServerConfig)
+        : new GoogleCredentialProvider(mcpServerConfig);
     const transportOptions:
       | StreamableHTTPClientTransportOptions
       | SSEClientTransportOptions = {
@@ -1259,7 +1265,7 @@ export async function createTransport(
         transportOptions,
       );
     }
-    throw new Error('No URL configured for Google Credentials MCP server');
+    throw new Error('No URL configured for Google Credentials or IAP MCP server');
   }
 
   // Check if we have OAuth configuration or stored tokens

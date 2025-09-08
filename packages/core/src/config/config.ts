@@ -150,6 +150,7 @@ export class MCPServerConfig {
 export enum AuthProviderType {
   DYNAMIC_DISCOVERY = 'dynamic_discovery',
   GOOGLE_CREDENTIALS = 'google_credentials',
+  IAP = 'iap',
 }
 
 export interface SandboxConfig {
