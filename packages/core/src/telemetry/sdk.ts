@@ -156,6 +156,9 @@ export function initializeTelemetry(config: Config): void {
     logRecordProcessors: [new BatchLogRecordProcessor(logExporter)],
     metricReader,
     instrumentations: [new HttpInstrumentation()],
+    spanLimits: {
+      attributeValueLengthLimit: 1_000_000,
+    },
   });
 
   try {
