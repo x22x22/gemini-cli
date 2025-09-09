@@ -23,6 +23,8 @@ import { UserAccountManager } from '../utils/userAccountManager.js';
 import { AuthType } from '../core/contentGenerator.js';
 import readline from 'node:readline';
 import { Storage } from '../config/storage.js';
+import { OAuthCredentialStorage } from './oauth-credential-storage.js';
+import { FORCE_ENCRYPTED_FILE_ENV_VAR } from '../mcp/token-storage/index.js';
 
 const userAccountManager = new UserAccountManager();
 
@@ -74,6 +76,8 @@ async function initOauthClient(
       proxy: config.getProxy(),
     },
   });
+  const useEncryptedStorage =
+    process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] === 'true';
 
   if (
     process.env['GOOGLE_GENAI_USE_GCA'] &&
@@ -87,7 +91,11 @@ async function initOauthClient(
   }
 
   client.on('tokens', async (tokens: Credentials) => {
-    await cacheCredentials(tokens);
+    if (useEncryptedStorage) {
+      OAuthCredentialStorage.saveCredentials(tokens);
+    } else {
+      await cacheCredentials(tokens);
+    }
   });
 
   // If there are cached creds on disk, they always take precedence
@@ -419,6 +427,17 @@ export function getAvailablePort(): Promise<number> {
 }
 
 async function loadCachedCredentials(client: OAuth2Client): Promise<boolean> {
+  const useEncryptedStorage =
+    process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] === 'true';
+  if (useEncryptedStorage) {
+    const credentials = await OAuthCredentialStorage.loadCredentials();
+    if (credentials) {
+      client.setCredentials(credentials);
+      return true;
+    }
+    return false;
+  }
+
   const pathsToTry = [
     Storage.getOAuthCredsPath(),
     process.env['GOOGLE_APPLICATION_CREDENTIALS'],
