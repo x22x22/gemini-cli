@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import type { Credentials } from 'google-auth-library';
 import type { Mock } from 'vitest';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
@@ -40,6 +41,14 @@ vi.mock('crypto');
 vi.mock('node:readline');
 vi.mock('../utils/browser.js', () => ({
   shouldAttemptBrowserLaunch: () => true,
+}));
+
+vi.mock('./oauth-credential-storage.js', () => ({
+  OAuthCredentialStorage: {
+    saveCredentials: vi.fn(),
+    loadCredentials: vi.fn(),
+    clearCredentials: vi.fn(),
+  },
 }));
 
 const mockConfig = {
@@ -977,6 +986,180 @@ describe('oauth2', () => {
         await getOauthClient(AuthType.LOGIN_WITH_GOOGLE, mockConfig);
         expect(OAuth2Client).toHaveBeenCalledTimes(2);
       });
+    });
+  });
+
+  describe('with encrypted flag true', () => {
+    let tempHomeDir: string;
+    beforeEach(() => {
+      process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'true';
+      tempHomeDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'gemini-cli-test-home-'),
+      );
+      (os.homedir as Mock).mockReturnValue(tempHomeDir);
+    });
+
+    afterEach(() => {
+      fs.rmSync(tempHomeDir, { recursive: true, force: true });
+      vi.clearAllMocks();
+      resetOauthClientForTesting();
+      vi.unstubAllEnvs();
+    });
+
+    it('should save credentials using OAuthCredentialStorage during web login', async () => {
+      const { OAuthCredentialStorage } = await import(
+        './oauth-credential-storage.js'
+      );
+      const mockAuthUrl = 'https://example.com/auth';
+      const mockCode = 'test-code';
+      const mockState = 'test-state';
+      const mockTokens = {
+        access_token: 'test-access-token',
+        refresh_token: 'test-refresh-token',
+      };
+
+      let onTokensCallback: (tokens: Credentials) => void = () => {};
+      const mockOn = vi.fn((event, callback) => {
+        if (event === 'tokens') {
+          onTokensCallback = callback;
+        }
+      });
+
+      const mockGetToken = vi.fn().mockImplementation(async () => {
+        onTokensCallback(mockTokens);
+        return { tokens: mockTokens };
+      });
+
+      const mockOAuth2Client = {
+        generateAuthUrl: vi.fn().mockReturnValue(mockAuthUrl),
+        getToken: mockGetToken,
+        setCredentials: vi.fn(),
+        getAccessToken: vi
+          .fn()
+          .mockResolvedValue({ token: 'mock-access-token' }),
+        on: mockOn,
+        credentials: mockTokens,
+      } as unknown as OAuth2Client;
+      (OAuth2Client as unknown as Mock).mockImplementation(
+        () => mockOAuth2Client,
+      );
+
+      vi.spyOn(crypto, 'randomBytes').mockReturnValue(mockState as never);
+      (open as Mock).mockImplementation(async () => ({ on: vi.fn() }) as never);
+
+      (global.fetch as Mock).mockResolvedValue({
+        ok: true,
+        json: vi
+          .fn()
+          .mockResolvedValue({ email: 'test-google-account@gmail.com' }),
+      } as unknown as Response);
+
+      let requestCallback!: http.RequestListener;
+      let serverListeningCallback: (value: unknown) => void;
+      const serverListeningPromise = new Promise(
+        (resolve) => (serverListeningCallback = resolve),
+      );
+
+      let capturedPort = 0;
+      const mockHttpServer = {
+        listen: vi.fn((port: number, _host: string, callback?: () => void) => {
+          capturedPort = port;
+          if (callback) {
+            callback();
+          }
+          serverListeningCallback(undefined);
+        }),
+        close: vi.fn((callback?: () => void) => {
+          if (callback) {
+            callback();
+          }
+        }),
+        on: vi.fn(),
+        address: () => ({ port: capturedPort }),
+      };
+      (http.createServer as Mock).mockImplementation((cb) => {
+        requestCallback = cb as http.RequestListener;
+        return mockHttpServer as unknown as http.Server;
+      });
+
+      const clientPromise = getOauthClient(
+        AuthType.LOGIN_WITH_GOOGLE,
+        mockConfig,
+      );
+
+      await serverListeningPromise;
+
+      const mockReq = {
+        url: `/oauth2callback?code=${mockCode}&state=${mockState}`,
+      } as http.IncomingMessage;
+      const mockRes = {
+        writeHead: vi.fn(),
+        end: vi.fn(),
+      } as unknown as http.ServerResponse;
+
+      requestCallback(mockReq, mockRes);
+
+      await clientPromise;
+
+      expect(
+        OAuthCredentialStorage.saveCredentials as Mock,
+      ).toHaveBeenCalledWith(mockTokens);
+      const credsPath = path.join(tempHomeDir, '.gemini', 'oauth_creds.json');
+      expect(fs.existsSync(credsPath)).toBe(false);
+    });
+
+    it('should load credentials using OAuthCredentialStorage and not from file', async () => {
+      const { OAuthCredentialStorage } = await import(
+        './oauth-credential-storage.js'
+      );
+      const cachedCreds = { refresh_token: 'cached-encrypted-token' };
+      (OAuthCredentialStorage.loadCredentials as Mock).mockResolvedValue(
+        cachedCreds,
+      );
+
+      // Create a dummy unencrypted credential file.
+      // If the logic is correct, this file should be ignored.
+      const unencryptedCreds = { refresh_token: 'unencrypted-token' };
+      const credsPath = path.join(tempHomeDir, '.gemini', 'oauth_creds.json');
+      await fs.promises.mkdir(path.dirname(credsPath), { recursive: true });
+      await fs.promises.writeFile(credsPath, JSON.stringify(unencryptedCreds));
+
+      const mockClient = {
+        setCredentials: vi.fn(),
+        getAccessToken: vi.fn().mockResolvedValue({ token: 'test-token' }),
+        getTokenInfo: vi.fn().mockResolvedValue({}),
+        on: vi.fn(),
+      };
+
+      (OAuth2Client as unknown as Mock).mockImplementation(
+        () => mockClient as unknown as OAuth2Client,
+      );
+
+      await getOauthClient(AuthType.LOGIN_WITH_GOOGLE, mockConfig);
+
+      expect(OAuthCredentialStorage.loadCredentials as Mock).toHaveBeenCalled();
+      expect(mockClient.setCredentials).toHaveBeenCalledWith(cachedCreds);
+      expect(mockClient.setCredentials).not.toHaveBeenCalledWith(
+        unencryptedCreds,
+      );
+    });
+
+    it('should clear credentials using OAuthCredentialStorage', async () => {
+      const { OAuthCredentialStorage } = await import(
+        './oauth-credential-storage.js'
+      );
+
+      // Create a dummy unencrypted credential file. It should not be deleted.
+      const credsPath = path.join(tempHomeDir, '.gemini', 'oauth_creds.json');
+      await fs.promises.mkdir(path.dirname(credsPath), { recursive: true });
+      await fs.promises.writeFile(credsPath, '{}');
+
+      await clearCachedCredentialFile();
+
+      expect(
+        OAuthCredentialStorage.clearCredentials as Mock,
+      ).toHaveBeenCalled();
+      expect(fs.existsSync(credsPath)).toBe(true); // The unencrypted file should remain
     });
   });
 });

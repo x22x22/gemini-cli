@@ -65,6 +65,10 @@ export interface OauthWebLogin {
 
 const oauthClientPromises = new Map<AuthType, Promise<OAuth2Client>>();
 
+function getUseEncryptedStorageFlag() {
+  return process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] === 'true';
+}
+
 async function initOauthClient(
   authType: AuthType,
   config: Config,
@@ -76,8 +80,7 @@ async function initOauthClient(
       proxy: config.getProxy(),
     },
   });
-  const useEncryptedStorage =
-    process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] === 'true';
+  const useEncryptedStorage = getUseEncryptedStorageFlag();
 
   if (
     process.env['GOOGLE_GENAI_USE_GCA'] &&
@@ -427,8 +430,7 @@ export function getAvailablePort(): Promise<number> {
 }
 
 async function loadCachedCredentials(client: OAuth2Client): Promise<boolean> {
-  const useEncryptedStorage =
-    process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] === 'true';
+  const useEncryptedStorage = getUseEncryptedStorageFlag();
   if (useEncryptedStorage) {
     const credentials = await OAuthCredentialStorage.loadCredentials();
     if (credentials) {
@@ -489,7 +491,12 @@ export function clearOauthClientCache() {
 
 export async function clearCachedCredentialFile() {
   try {
-    await fs.rm(Storage.getOAuthCredsPath(), { force: true });
+    const useEncryptedStorage = getUseEncryptedStorageFlag();
+    if (useEncryptedStorage) {
+      await OAuthCredentialStorage.clearCredentials();
+    } else {
+      await fs.rm(Storage.getOAuthCredsPath(), { force: true });
+    }
     // Clear the Google Account ID cache when credentials are cleared
     await userAccountManager.clearCachedGoogleAccount();
     // Clear the in-memory OAuth client cache to force re-authentication
