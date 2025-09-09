@@ -58,7 +58,7 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
   config,
   slashCommands,
   commandContext,
-  placeholder = '  Type your message or @path/to/file',
+  placeholder = '  Type your message, @path/to/file, or Ctrl+V for clipboard images',
   focus = true,
   inputWidth,
   suggestionsWidth,
