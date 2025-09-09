@@ -141,7 +141,7 @@ describe('<Footer />', () => {
         ...defaultProps,
         isTrustedFolder: true,
       });
-      expect(lastFrame()).toMatch(/no.*sandbox/s);
+      expect(lastFrame()).toMatch(/\bno sandbox\b/);
       vi.unstubAllEnvs();
     });
 
