@@ -95,7 +95,7 @@ async function initOauthClient(
 
   client.on('tokens', async (tokens: Credentials) => {
     if (useEncryptedStorage) {
-      OAuthCredentialStorage.saveCredentials(tokens);
+      await OAuthCredentialStorage.saveCredentials(tokens);
     } else {
       await cacheCredentials(tokens);
     }
