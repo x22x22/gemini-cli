@@ -403,6 +403,7 @@ export async function installExtension(
 
     try {
       newExtensionConfig = await loadExtensionConfig(localSourcePath);
+      console.info("newExtensionConfig:", JSON.stringify(newExtensionConfig));
       if (!newExtensionConfig) {
         throw new Error(
           `Invalid extension at ${installMetadata.source}. Please make sure it has a valid gemini-extension.json file.`,
