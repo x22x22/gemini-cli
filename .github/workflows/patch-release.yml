@@ -82,6 +82,10 @@ jobs:
           echo "NPM_TAG=$(echo "${VERSION_JSON}" | jq -r .npmTag)" >> "${GITHUB_OUTPUT}"
           echo "PREVIOUS_TAG=$(echo "${VERSION_JSON}" | jq -r .previousReleaseTag)" >> "${GITHUB_OUTPUT}"
 
+      - name: 'Print Calculated Version'
+        run: |-
+          echo "Calculated version: ${{ steps.version.outputs.RELEASE_VERSION }}"
+
       - name: 'Build, Test, and Publish'
         uses: './.github/actions/publish-release'
         with:
