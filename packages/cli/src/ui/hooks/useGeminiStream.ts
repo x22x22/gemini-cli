@@ -913,14 +913,10 @@ export const useGeminiStream = (
     ],
   );
 
-  const pendingHistoryItems = useMemo(
-    () =>
-      [
-        pendingHistoryItemRef.current,
-        pendingToolCallGroupDisplay,
-      ].filter((i) => i !== undefined && i !== null),
-    [pendingHistoryItemRef, pendingToolCallGroupDisplay, toolCalls],
-  );
+  const pendingHistoryItems = [
+    pendingHistoryItemRef.current,
+    pendingToolCallGroupDisplay,
+  ].filter((i) => i !== undefined && i !== null);
 
   useEffect(() => {
     const saveRestorableToolCalls = async () => {
