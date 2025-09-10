@@ -149,4 +149,3 @@ runs:
           --body "The release workflow failed. See the full run for details: ${DETAILS_URL}" \
           --label "kind/bug,release-failure,priority/p0"
       shell: 'bash'
-

@@ -103,4 +103,3 @@ jobs:
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           dry-run: '${{ steps.vars.outputs.is_dry_run }}'
           previous-tag: '${{ steps.version.outputs.PREVIOUS_TAG }}'
-
