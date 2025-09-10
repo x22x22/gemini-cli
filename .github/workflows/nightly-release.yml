@@ -10,6 +10,11 @@ on:
         required: true
         type: 'boolean'
         default: true
+      force_skip_tests:
+        description: 'Select to skip the "Run Tests" step in testing. Prod releases should run tests'
+        required: false
+        type: 'boolean'
+        default: false
 
 jobs:
   release:
@@ -28,6 +33,12 @@ jobs:
 
       - name: 'Install Dependencies'
         run: 'npm ci'
+
+      - name: 'Run Tests'
+        uses: './.github/actions/run-tests'
+        with:
+          force_skip_tests: '${{ github.event.inputs.force_skip_tests }}'
+          gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
 
       - name: 'Get Nightly Version'
         id: 'nightly_version'
