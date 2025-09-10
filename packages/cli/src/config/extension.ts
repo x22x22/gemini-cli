@@ -408,12 +408,6 @@ export async function installExtension(
           `Invalid extension at ${installMetadata.source}. Please make sure it has a valid gemini-extension.json file.`,
         );
       }
-      if(newExtensionConfig.mcpServers) {
-        console.info("This extension will run the following MCP servers: ")
-        for(const [key, value] of Object.entries(newExtensionConfig.mcpServers)) {
-          console.info(`MCP server ${key}: ${value.description}`);
-        }
-      }
 
       const newExtensionName = newExtensionConfig.name;
       const extensionStorage = new ExtensionStorage(newExtensionName);
@@ -428,6 +422,14 @@ export async function installExtension(
         throw new Error(
           `Extension "${newExtensionName}" is already installed. Please uninstall it first.`,
         );
+      }
+
+      if(newExtensionConfig.mcpServers) {
+        console.info("This extension will run the following MCP servers: ")
+        for(const [key, value] of Object.entries(newExtensionConfig.mcpServers)) {
+          console.info(`  * ${key}: ${value.description}`);
+        }
+        console.info("The extension will append info to your gemini.md context")
       }
 
       await fs.promises.mkdir(destinationPath, { recursive: true });
