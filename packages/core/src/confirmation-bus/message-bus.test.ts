@@ -8,7 +8,13 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MessageBus } from './message-bus.js';
 import { PolicyEngine } from '../policy/policy-engine.js';
 import { PolicyDecision } from '../policy/types.js';
-import { MessageBusType, type ToolConfirmationRequest } from './types.js';
+import {
+  MessageBusType,
+  type ToolConfirmationRequest,
+  type ToolConfirmationResponse,
+  type ToolPolicyRejection,
+  type ToolExecutionSuccess,
+} from './types.js';
 
 describe('MessageBus', () => {
   let messageBus: MessageBus;
@@ -64,11 +70,12 @@ describe('MessageBus', () => {
 
       messageBus.publish(request);
 
-      expect(responseHandler).toHaveBeenCalledWith({
+      const expectedResponse: ToolConfirmationResponse = {
         type: MessageBusType.TOOL_CONFIRMATION_RESPONSE,
         correlationId: '123',
         confirmed: true,
-      });
+      };
+      expect(responseHandler).toHaveBeenCalledWith(expectedResponse);
     });
 
     it('should emit rejection and response when policy denies', () => {
@@ -93,16 +100,18 @@ describe('MessageBus', () => {
 
       messageBus.publish(request);
 
-      expect(rejectionHandler).toHaveBeenCalledWith({
+      const expectedRejection: ToolPolicyRejection = {
         type: MessageBusType.TOOL_POLICY_REJECTION,
         toolCall: { name: 'test-tool', args: {} },
-      });
+      };
+      expect(rejectionHandler).toHaveBeenCalledWith(expectedRejection);
 
-      expect(responseHandler).toHaveBeenCalledWith({
+      const expectedResponse: ToolConfirmationResponse = {
         type: MessageBusType.TOOL_CONFIRMATION_RESPONSE,
         correlationId: '123',
         confirmed: false,
-      });
+      };
+      expect(responseHandler).toHaveBeenCalledWith(expectedResponse);
     });
 
     it('should pass through to UI when policy says ASK_USER', () => {
@@ -132,7 +141,7 @@ describe('MessageBus', () => {
         successHandler,
       );
 
-      const message = {
+      const message: ToolExecutionSuccess<string> = {
         type: MessageBusType.TOOL_EXECUTION_SUCCESS as const,
         toolCall: { name: 'test-tool' },
         result: 'success',
@@ -149,7 +158,7 @@ describe('MessageBus', () => {
       const handler = vi.fn();
       messageBus.subscribe(MessageBusType.TOOL_EXECUTION_SUCCESS, handler);
 
-      const message = {
+      const message: ToolExecutionSuccess<string> = {
         type: MessageBusType.TOOL_EXECUTION_SUCCESS as const,
         toolCall: { name: 'test' },
         result: 'test',
@@ -165,7 +174,7 @@ describe('MessageBus', () => {
       messageBus.subscribe(MessageBusType.TOOL_EXECUTION_SUCCESS, handler);
       messageBus.unsubscribe(MessageBusType.TOOL_EXECUTION_SUCCESS, handler);
 
-      const message = {
+      const message: ToolExecutionSuccess<string> = {
         type: MessageBusType.TOOL_EXECUTION_SUCCESS as const,
         toolCall: { name: 'test' },
         result: 'test',
@@ -183,7 +192,7 @@ describe('MessageBus', () => {
       messageBus.subscribe(MessageBusType.TOOL_EXECUTION_SUCCESS, handler1);
       messageBus.subscribe(MessageBusType.TOOL_EXECUTION_SUCCESS, handler2);
 
-      const message = {
+      const message: ToolExecutionSuccess<string> = {
         type: MessageBusType.TOOL_EXECUTION_SUCCESS as const,
         toolCall: { name: 'test' },
         result: 'test',
