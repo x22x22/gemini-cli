@@ -20,9 +20,6 @@ inputs:
   dry-run:
     description: 'Whether to run in dry-run mode.'
     required: true
-  release-branch:
-    description: 'The branch to target for the release.'
-    required: true
   previous-tag:
     description: 'The previous tag to use for generating release notes.'
     required: true
@@ -34,6 +31,44 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: 'Configure Git User'
+      working-directory: '${{ inputs.working-directory }}'
+      shell: 'bash'
+      run: |-
+        git config user.name "gemini-cli-robot"
+        git config user.email "gemini-cli-robot@google.com"
+
+    - name: 'Create and switch to a release branch'
+      working-directory: '${{ inputs.working-directory }}'
+      id: 'release_branch'
+      shell: 'bash'
+      run: |
+        BRANCH_NAME="release/v${{ inputs.release-version }}"
+        git switch -c "${BRANCH_NAME}"
+        echo "BRANCH_NAME=${BRANCH_NAME}" >> "${GITHUB_OUTPUT}"
+
+    - name: 'Update package versions'
+      working-directory: '${{ inputs.working-directory }}'
+      shell: 'bash'
+      run: 'npm run release:version "${{ inputs.release-version }}"'
+
+    - name: 'Commit and Conditionally Push package versions'
+      working-directory: '${{ inputs.working-directory }}'
+      shell: 'bash'
+      env:
+        BRANCH_NAME: '${{ steps.release_branch.outputs.BRANCH_NAME }}'
+        DRY_RUN: '${{ inputs.dry-run }}'
+        RELEASE_TAG: 'v${{ inputs.release-version }}'
+      run: |-
+        git add package.json package-lock.json packages/*/package.json
+        git commit -m "chore(release): ${RELEASE_TAG}"
+        if [[ "${DRY_RUN}" == "false" ]]; then
+          echo "Pushing release branch to remote..."
+          git push --set-upstream origin "${BRANCH_NAME}" --follow-tags
+        else
+          echo "Dry run enabled. Skipping push."
+        fi
+
     - name: 'Build and Prepare Packages'
       working-directory: '${{ inputs.working-directory }}'
       run: |-
@@ -92,8 +127,9 @@ runs:
       run: |-
         gh release create "v${{ inputs.release-version }}" \
           bundle/gemini.js \
-          --target "${{ inputs.release-branch }}" \
+          --target "${{ steps.release_branch.outputs.BRANCH_NAME }}" \
           --title "Release v${{ inputs.release-version }}" \
           --notes-start-tag "${{ inputs.previous-tag }}" \
           --generate-notes
       shell: 'bash'
+

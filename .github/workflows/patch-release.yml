@@ -96,7 +96,7 @@ jobs:
           npm run test:integration:sandbox:none
           npm run test:integration:sandbox:docker
 
-      - name: 'Build, Test, and Publish'
+      - name: 'Publish Release'
         uses: './.github/actions/publish-release'
         with:
           release-version: '${{ steps.version.outputs.RELEASE_VERSION }}'
@@ -105,7 +105,6 @@ jobs:
           wombat-token-cli: '${{ secrets.WOMBAT_TOKEN_CLI }}'
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           dry-run: '${{ steps.vars.outputs.is_dry_run }}'
-          release-branch: '${{ github.event.inputs.ref }}'
           previous-tag: '${{ steps.version.outputs.PREVIOUS_TAG }}'
 
       - name: 'Create Issue on Failure'
