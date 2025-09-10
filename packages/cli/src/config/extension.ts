@@ -184,7 +184,7 @@ export function loadExtensionsFromDir(dir: string): Extension[] {
 export function loadExtension(extensionDir: string): Extension | null {
   if (!fs.statSync(extensionDir).isDirectory()) {
     console.error(
-      `Warning: unexpected file ${extensionDir} in extensions directory.`, 
+      `Warning: unexpected file ${extensionDir} in extensions directory.`,
     );
     return null;
   }
@@ -216,7 +216,7 @@ export function loadExtension(extensionDir: string): Extension | null {
     }) as unknown as ExtensionConfig;
     if (!config.name || !config.version) {
       console.error(
-        `Invalid extension config in ${configFilePath}: missing name or version.`, 
+        `Invalid extension config in ${configFilePath}: missing name or version.`,
       );
       return null;
     }
@@ -444,15 +444,21 @@ export async function installExtension(
         );
       }
 
-      if(newExtensionConfig.mcpServers) {
-        console.info("This extension will run the following MCP servers: ")
-        for(const [key, value] of Object.entries(newExtensionConfig.mcpServers)) {
+      if (installMetadata.type === 'local' && newExtensionConfig.mcpServers) {
+        console.info('This extension will run the following MCP servers: ');
+        for (const [key, value] of Object.entries(
+          newExtensionConfig.mcpServers,
+        )) {
           console.info(`  * ${key}: ${value.description}`);
         }
-        console.info("The extension will append info to your gemini.md context")
+        console.info(
+          'The extension will append info to your gemini.md context',
+        );
       }
 
-      const shouldContinue = await promptForContinuation('Do you want to continue? (y/n): ');
+      const shouldContinue = await promptForContinuation(
+        'Do you want to continue? (y/n): ',
+      );
       if (!shouldContinue) {
         throw new Error('Installation cancelled by user.');
       }
@@ -557,19 +563,19 @@ export function toOutputString(extension: Extension): string {
     output += `\n Source: ${extension.installMetadata.source} (Type: ${extension.installMetadata.type})`;
   }
   if (extension.contextFiles.length > 0) {
-    output += `\n Context files:`
+    output += `\n Context files:`;
     extension.contextFiles.forEach((contextFile) => {
       output += `\n  ${contextFile}`;
     });
   }
   if (extension.config.mcpServers) {
-    output += `\n MCP servers:`
+    output += `\n MCP servers:`;
     Object.keys(extension.config.mcpServers).forEach((key) => {
       output += `\n  ${key}`;
     });
   }
   if (extension.config.excludeTools) {
-    output += `\n Excluded tools:`
+    output += `\n Excluded tools:`;
     extension.config.excludeTools.forEach((tool) => {
       output += `\n  ${tool}`;
     });
