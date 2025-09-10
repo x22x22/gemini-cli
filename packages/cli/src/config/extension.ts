@@ -184,7 +184,7 @@ export function loadExtensionsFromDir(dir: string): Extension[] {
 export function loadExtension(extensionDir: string): Extension | null {
   if (!fs.statSync(extensionDir).isDirectory()) {
     console.error(
-      `Warning: unexpected file ${extensionDir} in extensions directory.`,
+      `Warning: unexpected file ${extensionDir} in extensions directory.`, 
     );
     return null;
   }
@@ -216,7 +216,7 @@ export function loadExtension(extensionDir: string): Extension | null {
     }) as unknown as ExtensionConfig;
     if (!config.name || !config.version) {
       console.error(
-        `Invalid extension config in ${configFilePath}: missing name or version.`,
+        `Invalid extension config in ${configFilePath}: missing name or version.`, 
       );
       return null;
     }
@@ -353,6 +353,26 @@ async function cloneFromGit(
   }
 }
 
+/**
+ * Asks users a prompt and awaits for a y/n response
+ * @param prompt A yes/no prompt to ask the user
+ * @returns Whether or not the user answers 'y' (yes)
+ */
+async function promptForContinuation(prompt: string): Promise<boolean> {
+  const readline = await import('node:readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase() === 'y');
+    });
+  });
+}
+
 export async function installExtension(
   installMetadata: ExtensionInstallMetadata,
   cwd: string = process.cwd(),
@@ -430,6 +450,11 @@ export async function installExtension(
           console.info(`  * ${key}: ${value.description}`);
         }
         console.info("The extension will append info to your gemini.md context")
+      }
+
+      const shouldContinue = await promptForContinuation('Do you want to continue? (y/n): ');
+      if (!shouldContinue) {
+        throw new Error('Installation cancelled by user.');
       }
 
       await fs.promises.mkdir(destinationPath, { recursive: true });
@@ -532,19 +557,19 @@ export function toOutputString(extension: Extension): string {
     output += `\n Source: ${extension.installMetadata.source} (Type: ${extension.installMetadata.type})`;
   }
   if (extension.contextFiles.length > 0) {
-    output += `\n Context files:`;
+    output += `\n Context files:`
     extension.contextFiles.forEach((contextFile) => {
       output += `\n  ${contextFile}`;
     });
   }
   if (extension.config.mcpServers) {
-    output += `\n MCP servers:`;
+    output += `\n MCP servers:`
     Object.keys(extension.config.mcpServers).forEach((key) => {
       output += `\n  ${key}`;
     });
   }
   if (extension.config.excludeTools) {
-    output += `\n Excluded tools:`;
+    output += `\n Excluded tools:`
     extension.config.excludeTools.forEach((tool) => {
       output += `\n  ${tool}`;
     });
@@ -585,7 +610,6 @@ export async function updateExtension(
     await copyExtension(extension.path, tempDir);
     await uninstallExtension(extension.config.name, cwd);
     await installExtension(extension.installMetadata, cwd);
-
     const updatedExtensionStorage = new ExtensionStorage(extension.config.name);
     const updatedExtension = loadExtension(
       updatedExtensionStorage.getExtensionDir(),
