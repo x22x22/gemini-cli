@@ -112,7 +112,9 @@ function setupLinters() {
     if (!runCommand(check, 'ignore')) {
       console.log(`Installing ${linter}...`);
       if (!runCommand(installer)) {
-        console.error(`Failed to install ${linter}. Please install it manually.`);
+        console.error(
+          `Failed to install ${linter}. Please install it manually.`,
+        );
         process.exit(1);
       }
     }
