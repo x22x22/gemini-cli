@@ -411,6 +411,12 @@ export class ClearcutLogger {
         gemini_cli_key: EventMetadataKey.GEMINI_CLI_START_SESSION_MCP_TOOLS,
         value: event.mcp_tools ? event.mcp_tools : '',
       },
+      {
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_AUTH_TYPE,
+        value: JSON.stringify(
+          this.config?.getContentGeneratorConfig()?.authType,
+        ),
+      },
     ];
     this.sessionData = data;
 
