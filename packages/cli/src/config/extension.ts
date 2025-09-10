@@ -403,11 +403,16 @@ export async function installExtension(
 
     try {
       newExtensionConfig = await loadExtensionConfig(localSourcePath);
-      console.info("newExtensionConfig:", JSON.stringify(newExtensionConfig));
       if (!newExtensionConfig) {
         throw new Error(
           `Invalid extension at ${installMetadata.source}. Please make sure it has a valid gemini-extension.json file.`,
         );
+      }
+      if(newExtensionConfig.mcpServers) {
+        console.info("This extension will run the following MCP servers: ")
+        for(const [key, value] of Object.entries(newExtensionConfig.mcpServers)) {
+          console.info(`MCP server ${key}: ${value.description}`);
+        }
       }
 
       const newExtensionName = newExtensionConfig.name;
