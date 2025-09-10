@@ -20,6 +20,9 @@ inputs:
   dry-run:
     description: 'Whether to run in dry-run mode.'
     required: true
+  release-tag:
+    description: 'The release tag for the release (e.g., v0.1.11).'
+    required: true
   previous-tag:
     description: 'The previous tag to use for generating release notes.'
     required: true
@@ -43,7 +46,7 @@ runs:
       id: 'release_branch'
       shell: 'bash'
       run: |
-        BRANCH_NAME="release/v${{ inputs.release-version }}"
+        BRANCH_NAME="release/${{ inputs.release-tag }}"
         git switch -c "${BRANCH_NAME}"
         echo "BRANCH_NAME=${BRANCH_NAME}" >> "${GITHUB_OUTPUT}"
 
@@ -58,7 +61,7 @@ runs:
       env:
         BRANCH_NAME: '${{ steps.release_branch.outputs.BRANCH_NAME }}'
         DRY_RUN: '${{ inputs.dry-run }}'
-        RELEASE_TAG: 'v${{ inputs.release-version }}'
+        RELEASE_TAG: '${{ inputs.release-tag }}'
       run: |-
         git add package.json package-lock.json packages/*/package.json
         git commit -m "chore(release): ${RELEASE_TAG}"
@@ -125,11 +128,25 @@ runs:
       env:
         GITHUB_TOKEN: '${{ inputs.github-token }}'
       run: |-
-        gh release create "v${{ inputs.release-version }}" \
+        gh release create "${{ inputs.release-tag }}" \
           bundle/gemini.js \
           --target "${{ steps.release_branch.outputs.BRANCH_NAME }}" \
-          --title "Release v${{ inputs.release-version }}" \
+          --title "Release ${{ inputs.release-tag }}" \
           --notes-start-tag "${{ inputs.previous-tag }}" \
           --generate-notes
+      shell: 'bash'
+
+    - name: 'Create Issue on Failure'
+      if: |-
+        ${{ failure() }}
+      env:
+        GITHUB_TOKEN: '${{ inputs.github-token }}'
+        RELEASE_TAG: '${{ inputs.release-tag }} || "N/A"'
+        DETAILS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+      run: |-
+        gh issue create \
+          --title "Release Failed for ${RELEASE_TAG} on $(date +'%Y-%m-%d')" \
+          --body "The release workflow failed. See the full run for details: ${DETAILS_URL}" \
+          --label "kind/bug,release-failure,priority/p0"
       shell: 'bash'
 
