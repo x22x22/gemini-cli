@@ -177,9 +177,7 @@ export async function startInteractiveUI(
   };
 
   const instance = render(
-    <React.StrictMode>
-      <AppWrapper />
-    </React.StrictMode>,
+    <AppWrapper />,
     {
       exitOnCtrlC: false,
       isScreenReaderEnabled: config.getScreenReader(),
