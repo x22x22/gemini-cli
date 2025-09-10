@@ -71,6 +71,33 @@ export function getVersion(options = {}) {
       latestNightlyTag.replace(/-nightly.*/, '').replace(/^v/, '') + '-preview';
     npmTag = 'preview';
     previousReleaseTag = getLatestTag('contains("preview")');
+  } else if (type === 'patch') {
+    const patchFrom = options.patchFrom || args.patchFrom;
+    if (!patchFrom || (patchFrom !== 'stable' && patchFrom !== 'preview')) {
+      throw new Error(
+        'Patch type must be specified with --patch-from=stable or --patch-from=preview',
+      );
+    }
+
+    if (patchFrom === 'stable') {
+      previousReleaseTag = getLatestTag(
+        '(contains("nightly") or contains("preview")) | not',
+      );
+      const [major, minor, patch] = previousReleaseTag
+        .replace(/^v/, '')
+        .split('.');
+      releaseVersion = `${major}.${minor}.${parseInt(patch) + 1}`;
+      npmTag = 'latest';
+    } else {
+      // patchFrom === 'preview'
+      previousReleaseTag = getLatestTag('contains("preview")');
+      const [version, prerelease] = previousReleaseTag
+        .replace(/^v/, '')
+        .split('-');
+      const [major, minor, patch] = version.split('.');
+      releaseVersion = `${major}.${minor}.${parseInt(patch) + 1}-${prerelease}`;
+      npmTag = 'preview';
+    }
   }
 
   const releaseTag = `v${releaseVersion}`;

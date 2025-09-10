@@ -82,4 +82,28 @@ describe('getReleaseVersion', () => {
       expect(result.previousReleaseTag).toBe(latestPreview);
     });
   });
+
+  describe('Patch Workflow Logic', () => {
+    it('should calculate the next patch version for a stable release', () => {
+      const latestStable = 'v0.5.1';
+      vi.mocked(execSync).mockReturnValue(latestStable);
+
+      const result = getVersion({ type: 'patch', patchFrom: 'stable' });
+
+      expect(result.releaseVersion).toBe('0.5.2');
+      expect(result.npmTag).toBe('latest');
+      expect(result.previousReleaseTag).toBe(latestStable);
+    });
+
+    it('should calculate the next patch version for a preview release', () => {
+      const latestPreview = 'v0.6.0-preview';
+      vi.mocked(execSync).mockReturnValue(latestPreview);
+
+      const result = getVersion({ type: 'patch', patchFrom: 'preview' });
+
+      expect(result.releaseVersion).toBe('0.6.1-preview');
+      expect(result.npmTag).toBe('preview');
+      expect(result.previousReleaseTag).toBe(latestPreview);
+    });
+  });
 });
