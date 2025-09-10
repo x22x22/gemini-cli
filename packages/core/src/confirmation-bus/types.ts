@@ -31,16 +31,16 @@ export interface ToolPolicyRejection {
   toolCall: FunctionCall;
 }
 
-export interface ToolExecutionSuccess {
+export interface ToolExecutionSuccess<T = unknown> {
   type: MessageBusType.TOOL_EXECUTION_SUCCESS;
   toolCall: FunctionCall;
-  result: unknown;
+  result: T;
 }
 
-export interface ToolExecutionFailure {
+export interface ToolExecutionFailure<E = Error> {
   type: MessageBusType.TOOL_EXECUTION_FAILURE;
   toolCall: FunctionCall;
-  error: Error;
+  error: E;
 }
 
 export type Message =
