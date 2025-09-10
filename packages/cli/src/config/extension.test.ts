@@ -574,6 +574,10 @@ describe('installExtension', () => {
 
     mockQuestion.mockImplementation((_query, callback) => callback('n'));
 
+    expect(mockQuestion).toHaveBeenCalledWith(
+      'Do you want to continue? (y/n): ',
+      expect.any(Function),
+    );
     await expect(
       installExtension({ source: sourceExtDir, type: 'local' }),
     ).rejects.toThrow('Installation cancelled by user.');
