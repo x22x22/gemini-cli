@@ -95,7 +95,7 @@ jobs:
           wombat-token-cli: '${{ secrets.WOMBAT_TOKEN_CLI }}'
           github-token: '${{ secrets.GITHUB_TOKEN }}'
           dry-run: '${{ steps.vars.outputs.is_dry_run }}'
-          release-branch: '${{ steps.release_branch.outputs.BRANCH_NAME }}'
+          release-branch: '${{ github.event.inputs.ref }}'
           previous-tag: '${{ steps.version.outputs.PREVIOUS_TAG }}'
           force_skip_tests: '${{ github.event.inputs.force_skip_tests }}'
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
