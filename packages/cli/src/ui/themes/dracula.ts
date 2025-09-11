@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { type SemanticColors } from './semantic-tokens.js';
 import { type ColorsTheme, Theme } from './theme.js';
 
 const draculaColors: ColorsTheme = {
@@ -22,6 +23,36 @@ const draculaColors: ColorsTheme = {
   Comment: '#6272a4',
   Gray: '#6272a4',
   GradientColors: ['#ff79c6', '#8be9fd'],
+};
+
+const draculaSemanticColors: SemanticColors = {
+  text: {
+    primary: draculaColors.Foreground,
+    secondary: draculaColors.Gray,
+    link: draculaColors.AccentBlue,
+    accent: draculaColors.AccentPurple,
+  },
+  background: {
+    primary: draculaColors.Background,
+    diff: {
+      added: draculaColors.DiffAdded,
+      removed: draculaColors.DiffRemoved,
+    },
+  },
+  border: {
+    default: draculaColors.Gray,
+    focused: draculaColors.AccentPurple,
+  },
+  ui: {
+    comment: draculaColors.Comment,
+    symbol: draculaColors.AccentCyan,
+    gradient: draculaColors.GradientColors,
+  },
+  status: {
+    error: draculaColors.AccentRed,
+    success: draculaColors.AccentGreen,
+    warning: draculaColors.AccentYellow,
+  },
 };
 
 export const Dracula: Theme = new Theme(
@@ -119,4 +150,5 @@ export const Dracula: Theme = new Theme(
     },
   },
   draculaColors,
+  draculaSemanticColors,
 );

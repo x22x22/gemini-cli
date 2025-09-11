@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { type SemanticColors } from './semantic-tokens.js';
 import { type ColorsTheme, Theme, lightTheme } from './theme.js';
 
 const googleCodeColors: ColorsTheme = {
@@ -22,6 +23,36 @@ const googleCodeColors: ColorsTheme = {
   Comment: '#5f6368',
   Gray: lightTheme.Gray,
   GradientColors: ['#066', '#606'],
+};
+
+const googleCodeSemanticColors: SemanticColors = {
+  text: {
+    primary: googleCodeColors.Foreground,
+    secondary: googleCodeColors.Gray,
+    link: googleCodeColors.AccentBlue,
+    accent: googleCodeColors.AccentPurple,
+  },
+  background: {
+    primary: googleCodeColors.Background,
+    diff: {
+      added: googleCodeColors.DiffAdded,
+      removed: googleCodeColors.DiffRemoved,
+    },
+  },
+  border: {
+    default: googleCodeColors.Gray,
+    focused: googleCodeColors.LightBlue,
+  },
+  ui: {
+    comment: googleCodeColors.Comment,
+    symbol: googleCodeColors.AccentCyan,
+    gradient: googleCodeColors.GradientColors,
+  },
+  status: {
+    error: googleCodeColors.AccentRed,
+    success: googleCodeColors.AccentGreen,
+    warning: googleCodeColors.AccentYellow,
+  },
 };
 
 export const GoogleCode: Theme = new Theme(
@@ -141,4 +172,5 @@ export const GoogleCode: Theme = new Theme(
     },
   },
   googleCodeColors,
+  googleCodeSemanticColors,
 );

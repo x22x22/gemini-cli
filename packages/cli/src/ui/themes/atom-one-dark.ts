@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { type SemanticColors } from './semantic-tokens.js';
 import { type ColorsTheme, Theme } from './theme.js';
 
 const atomOneDarkColors: ColorsTheme = {
@@ -22,6 +23,36 @@ const atomOneDarkColors: ColorsTheme = {
   Comment: '#5c6370',
   Gray: '#5c6370',
   GradientColors: ['#61aeee', '#98c379'],
+};
+
+const atomOneDarkSemanticColors: SemanticColors = {
+  text: {
+    primary: atomOneDarkColors.Foreground,
+    secondary: atomOneDarkColors.Gray,
+    link: atomOneDarkColors.AccentBlue,
+    accent: atomOneDarkColors.AccentPurple,
+  },
+  background: {
+    primary: atomOneDarkColors.Background,
+    diff: {
+      added: atomOneDarkColors.DiffAdded,
+      removed: atomOneDarkColors.DiffRemoved,
+    },
+  },
+  border: {
+    default: atomOneDarkColors.Gray,
+    focused: atomOneDarkColors.LightBlue,
+  },
+  ui: {
+    comment: atomOneDarkColors.Comment,
+    symbol: atomOneDarkColors.AccentCyan,
+    gradient: atomOneDarkColors.GradientColors,
+  },
+  status: {
+    error: atomOneDarkColors.AccentRed,
+    success: atomOneDarkColors.AccentGreen,
+    warning: atomOneDarkColors.AccentYellow,
+  },
 };
 
 export const AtomOneDark: Theme = new Theme(
@@ -142,4 +173,5 @@ export const AtomOneDark: Theme = new Theme(
     },
   },
   atomOneDarkColors,
+  atomOneDarkSemanticColors,
 );

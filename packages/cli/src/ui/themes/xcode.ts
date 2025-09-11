@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { type SemanticColors } from './semantic-tokens.js';
 import { type ColorsTheme, Theme } from './theme.js';
 
 const xcodeColors: ColorsTheme = {
@@ -22,6 +23,36 @@ const xcodeColors: ColorsTheme = {
   Comment: '#007400',
   Gray: '#c0c0c0',
   GradientColors: ['#1c00cf', '#007400'],
+};
+
+const xcodeSemanticColors: SemanticColors = {
+  text: {
+    primary: xcodeColors.Foreground,
+    secondary: xcodeColors.Gray,
+    link: xcodeColors.AccentBlue,
+    accent: xcodeColors.AccentPurple,
+  },
+  background: {
+    primary: xcodeColors.Background,
+    diff: {
+      added: xcodeColors.DiffAdded,
+      removed: xcodeColors.DiffRemoved,
+    },
+  },
+  border: {
+    default: xcodeColors.Gray,
+    focused: xcodeColors.LightBlue,
+  },
+  ui: {
+    comment: xcodeColors.Comment,
+    symbol: xcodeColors.AccentCyan,
+    gradient: xcodeColors.GradientColors,
+  },
+  status: {
+    error: xcodeColors.AccentRed,
+    success: xcodeColors.AccentGreen,
+    warning: xcodeColors.AccentYellow,
+  },
 };
 
 export const XCode: Theme = new Theme(
@@ -149,4 +180,5 @@ export const XCode: Theme = new Theme(
     },
   },
   xcodeColors,
+  xcodeSemanticColors,
 );

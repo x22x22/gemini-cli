@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { type SemanticColors } from './semantic-tokens.js';
 import { type ColorsTheme, Theme } from './theme.js';
 
 const ayuLightColors: ColorsTheme = {
@@ -22,6 +23,36 @@ const ayuLightColors: ColorsTheme = {
   Comment: '#ABADB1',
   Gray: '#a6aaaf',
   GradientColors: ['#399ee6', '#86b300'],
+};
+
+const ayuLightSemanticColors: SemanticColors = {
+  text: {
+    primary: ayuLightColors.Foreground,
+    secondary: ayuLightColors.Gray,
+    link: ayuLightColors.AccentBlue,
+    accent: ayuLightColors.AccentPurple,
+  },
+  background: {
+    primary: ayuLightColors.Background,
+    diff: {
+      added: ayuLightColors.DiffAdded,
+      removed: ayuLightColors.DiffRemoved,
+    },
+  },
+  border: {
+    default: ayuLightColors.Gray,
+    focused: ayuLightColors.LightBlue,
+  },
+  ui: {
+    comment: ayuLightColors.Comment,
+    symbol: ayuLightColors.AccentCyan,
+    gradient: ayuLightColors.GradientColors,
+  },
+  status: {
+    error: ayuLightColors.AccentRed,
+    success: ayuLightColors.AccentGreen,
+    warning: ayuLightColors.AccentYellow,
+  },
 };
 
 export const AyuLight: Theme = new Theme(
@@ -134,4 +165,5 @@ export const AyuLight: Theme = new Theme(
     },
   },
   ayuLightColors,
+  ayuLightSemanticColors,
 );

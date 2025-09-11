@@ -8,6 +8,7 @@
  * Shades of Purple Theme — for Highlight.js.
  * @author Ahmad Awais <https://twitter.com/mrahmadawais/>
  */
+import { type SemanticColors } from './semantic-tokens.js';
 import { type ColorsTheme, Theme } from './theme.js';
 
 const shadesOfPurpleColors: ColorsTheme = {
@@ -27,6 +28,36 @@ const shadesOfPurpleColors: ColorsTheme = {
   Comment: '#B362FF', // Comment color (same as AccentPurple)
   Gray: '#726c86', // Gray color
   GradientColors: ['#4d21fc', '#847ace', '#ff628c'],
+};
+
+const shadesOfPurpleSemanticColors: SemanticColors = {
+  text: {
+    primary: shadesOfPurpleColors.Foreground,
+    secondary: shadesOfPurpleColors.Gray,
+    link: shadesOfPurpleColors.AccentBlue,
+    accent: shadesOfPurpleColors.AccentPurple,
+  },
+  background: {
+    primary: shadesOfPurpleColors.Background,
+    diff: {
+      added: shadesOfPurpleColors.DiffAdded,
+      removed: shadesOfPurpleColors.DiffRemoved,
+    },
+  },
+  border: {
+    default: shadesOfPurpleColors.Gray,
+    focused: shadesOfPurpleColors.LightBlue,
+  },
+  ui: {
+    comment: shadesOfPurpleColors.Comment,
+    symbol: shadesOfPurpleColors.AccentCyan,
+    gradient: shadesOfPurpleColors.GradientColors,
+  },
+  status: {
+    error: shadesOfPurpleColors.AccentRed,
+    success: shadesOfPurpleColors.AccentGreen,
+    warning: shadesOfPurpleColors.AccentYellow,
+  },
 };
 
 // Additional colors from CSS that don't fit in the ColorsTheme interface
@@ -347,4 +378,5 @@ export const ShadesOfPurple = new Theme(
     },
   },
   shadesOfPurpleColors,
+  shadesOfPurpleSemanticColors,
 );

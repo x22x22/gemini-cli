@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { type SemanticColors } from './semantic-tokens.js';
 import { type ColorsTheme, Theme } from './theme.js';
 
 const githubDarkColors: ColorsTheme = {
@@ -22,6 +23,36 @@ const githubDarkColors: ColorsTheme = {
   Comment: '#6A737D',
   Gray: '#6A737D',
   GradientColors: ['#79B8FF', '#85E89D'],
+};
+
+const githubDarkSemanticColors: SemanticColors = {
+  text: {
+    primary: githubDarkColors.Foreground,
+    secondary: githubDarkColors.Gray,
+    link: githubDarkColors.AccentBlue,
+    accent: githubDarkColors.AccentPurple,
+  },
+  background: {
+    primary: githubDarkColors.Background,
+    diff: {
+      added: githubDarkColors.DiffAdded,
+      removed: githubDarkColors.DiffRemoved,
+    },
+  },
+  border: {
+    default: githubDarkColors.Gray,
+    focused: githubDarkColors.LightBlue,
+  },
+  ui: {
+    comment: githubDarkColors.Comment,
+    symbol: githubDarkColors.AccentCyan,
+    gradient: githubDarkColors.GradientColors,
+  },
+  status: {
+    error: githubDarkColors.AccentRed,
+    success: githubDarkColors.AccentGreen,
+    warning: githubDarkColors.AccentYellow,
+  },
 };
 
 export const GitHubDark: Theme = new Theme(
@@ -142,4 +173,5 @@ export const GitHubDark: Theme = new Theme(
     },
   },
   githubDarkColors,
+  githubDarkSemanticColors,
 );
