@@ -473,13 +473,13 @@ export async function installExtension(
         console.info(
           'The extension will append info to your gemini.md context',
         );
-      }
 
-      const shouldContinue = await promptForContinuation(
-        'Do you want to continue? (y/n): ',
-      );
-      if (!shouldContinue) {
-        throw new Error('Installation cancelled by user.');
+        const shouldContinue = await promptForContinuation(
+          'Do you want to continue? (y/n): ',
+        );
+        if (!shouldContinue) {
+          throw new Error('Installation cancelled by user.');
+        }
       }
 
       await fs.promises.mkdir(destinationPath, { recursive: true });

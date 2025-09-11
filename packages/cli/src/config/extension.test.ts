@@ -115,7 +115,6 @@ describe('loadExtensions', () => {
     );
     vi.mocked(os.homedir).mockReturnValue(tempHomeDir);
     vi.mocked(isWorkspaceTrusted).mockReturnValue(true);
-    mockQuestion.mockImplementation((_query, callback) => callback(''));
 
     userExtensionsDir = path.join(tempHomeDir, EXTENSIONS_DIRECTORY_NAME);
     fs.mkdirSync(userExtensionsDir, { recursive: true });
@@ -124,8 +123,6 @@ describe('loadExtensions', () => {
   afterEach(() => {
     fs.rmSync(tempHomeDir, { recursive: true, force: true });
     vi.restoreAllMocks();
-    mockQuestion.mockClear();
-    mockClose.mockClear();
   });
 
   it('should include extension path in loaded extension', () => {
@@ -241,7 +238,6 @@ describe('loadExtensions', () => {
   });
 
   it('should load a linked extension correctly', async () => {
-    mockQuestion.mockImplementation((_query, callback) => callback('y'));
     const tempWorkspaceDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'gemini-cli-test-workspace-'),
     );
@@ -457,7 +453,6 @@ describe('installExtension', () => {
     fs.mkdirSync(userExtensionsDir, { recursive: true });
     vi.mocked(isWorkspaceTrusted).mockReturnValue(true);
     vi.mocked(execSync).mockClear();
-    mockQuestion.mockImplementation((_query, callback) => callback('y'));
     Object.values(mockGit).forEach((fn) => fn.mockReset());
   });
 
@@ -580,22 +575,58 @@ describe('installExtension', () => {
     expect(logger?.logExtensionInstallEvent).toHaveBeenCalled();
   });
 
-  it('should cancel installation if user declines prompt', async () => {
+  it('should continue installation if user accepts prompt for local extension with mcp servers', async () => {
     const sourceExtDir = createExtension({
       extensionsDir: tempHomeDir,
       name: 'my-local-extension',
       version: '1.0.0',
+      mcpServers: {
+        'test-server': {
+          command: 'node',
+          args: ['server.js'],
+        },
+      },
+    });
+
+    mockQuestion.mockImplementation((_query, callback) => callback('y'));
+
+    await expect(
+      installExtension({ source: sourceExtDir, type: 'local' }),
+    ).resolves.toBe('my-local-extension');
+
+    expect(mockQuestion).toHaveBeenCalledWith(
+      expect.stringContaining('Do you want to continue? (y/n)'),
+      expect.any(Function),
+    );
+    mockQuestion.mockClear();
+    mockClose.mockClear();
+  });
+
+  it('should cancel installation if user declines prompt for local extension with mcp servers', async () => {
+    const sourceExtDir = createExtension({
+      extensionsDir: tempHomeDir,
+      name: 'my-local-extension',
+      version: '1.0.0',
+      mcpServers: {
+        'test-server': {
+          command: 'node',
+          args: ['server.js'],
+        },
+      },
     });
 
     mockQuestion.mockImplementation((_query, callback) => callback('n'));
 
-    expect(mockQuestion).toHaveBeenCalledWith(
-      'Do you want to continue? (y/n): ',
-      expect.any(Function),
-    );
     await expect(
       installExtension({ source: sourceExtDir, type: 'local' }),
     ).rejects.toThrow('Installation cancelled by user.');
+
+    expect(mockQuestion).toHaveBeenCalledWith(
+      expect.stringContaining('Do you want to continue? (y/n)'),
+      expect.any(Function),
+    );
+    mockQuestion.mockClear();
+    mockClose.mockClear();
   });
 });
 
@@ -672,7 +703,6 @@ describe('performWorkspaceExtensionMigration', () => {
     );
     vi.mocked(os.homedir).mockReturnValue(tempHomeDir);
     vi.mocked(isWorkspaceTrusted).mockReturnValue(true);
-    mockQuestion.mockImplementation((_query, callback) => callback('y'));
 
     workspaceExtensionsDir = path.join(
       tempWorkspaceDir,
@@ -685,8 +715,6 @@ describe('performWorkspaceExtensionMigration', () => {
     fs.rmSync(tempWorkspaceDir, { recursive: true, force: true });
     fs.rmSync(tempHomeDir, { recursive: true, force: true });
     vi.restoreAllMocks();
-    mockQuestion.mockClear();
-    mockClose.mockClear();
   });
 
   describe('folder trust', () => {
@@ -835,7 +863,6 @@ describe('updateExtension', () => {
     fs.rmSync(userExtensionsDir, { recursive: true, force: true });
     fs.mkdirSync(userExtensionsDir, { recursive: true });
     vi.mocked(isWorkspaceTrusted).mockReturnValue(true);
-    mockQuestion.mockImplementation((_query, callback) => callback('y'));
 
     vi.mocked(execSync).mockClear();
     Object.values(mockGit).forEach((fn) => fn.mockReset());
@@ -843,7 +870,6 @@ describe('updateExtension', () => {
 
   afterEach(() => {
     fs.rmSync(tempHomeDir, { recursive: true, force: true });
-    mockQuestion.mockClear();
     mockClose.mockClear();
   });
 
