@@ -10,6 +10,7 @@ import * as path from 'node:path';
 import { MCPOAuthTokenStorage } from './oauth-token-storage.js';
 import { FORCE_ENCRYPTED_FILE_ENV_VAR } from './token-storage/index.js';
 import type { OAuthCredentials, OAuthToken } from './token-storage/types.js';
+import { GEMINI_DIR } from '../utils/paths.js';
 
 // Mock dependencies
 vi.mock('node:fs', () => ({
@@ -67,7 +68,7 @@ describe('MCPOAuthTokenStorage', () => {
 
   describe('with encrypted flag false', () => {
     beforeEach(() => {
-      process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'false';
+      vi.stubEnv(FORCE_ENCRYPTED_FILE_ENV_VAR, 'false');
       tokenStorage = new MCPOAuthTokenStorage();
 
       vi.clearAllMocks();
@@ -75,6 +76,7 @@ describe('MCPOAuthTokenStorage', () => {
     });
 
     afterEach(() => {
+      vi.unstubAllEnvs();
       vi.restoreAllMocks();
     });
 
@@ -97,7 +99,7 @@ describe('MCPOAuthTokenStorage', () => {
         expect(tokens.size).toBe(1);
         expect(tokens.get('test-server')).toEqual(mockCredentials);
         expect(fs.readFile).toHaveBeenCalledWith(
-          path.join('/mock/home', '.gemini', 'mcp-oauth-tokens.json'),
+          path.join('/mock/home', GEMINI_DIR, 'mcp-oauth-tokens.json'),
           'utf-8',
         );
       });
@@ -140,11 +142,11 @@ describe('MCPOAuthTokenStorage', () => {
         );
 
         expect(fs.mkdir).toHaveBeenCalledWith(
-          path.join('/mock/home', '.gemini'),
+          path.join('/mock/home', GEMINI_DIR),
           { recursive: true },
         );
         expect(fs.writeFile).toHaveBeenCalledWith(
-          path.join('/mock/home', '.gemini', 'mcp-oauth-tokens.json'),
+          path.join('/mock/home', GEMINI_DIR, 'mcp-oauth-tokens.json'),
           expect.stringContaining('test-server'),
           { mode: 0o600 },
         );
@@ -255,7 +257,7 @@ describe('MCPOAuthTokenStorage', () => {
         await tokenStorage.deleteCredentials('test-server');
 
         expect(fs.unlink).toHaveBeenCalledWith(
-          path.join('/mock/home', '.gemini', 'mcp-oauth-tokens.json'),
+          path.join('/mock/home', GEMINI_DIR, 'mcp-oauth-tokens.json'),
         );
         expect(fs.writeFile).not.toHaveBeenCalled();
       });
@@ -336,7 +338,7 @@ describe('MCPOAuthTokenStorage', () => {
         await tokenStorage.clearAll();
 
         expect(fs.unlink).toHaveBeenCalledWith(
-          path.join('/mock/home', '.gemini', 'mcp-oauth-tokens.json'),
+          path.join('/mock/home', GEMINI_DIR, 'mcp-oauth-tokens.json'),
         );
       });
 
@@ -362,7 +364,7 @@ describe('MCPOAuthTokenStorage', () => {
 
   describe('with encrypted flag true', () => {
     beforeEach(() => {
-      process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'true';
+      vi.stubEnv(FORCE_ENCRYPTED_FILE_ENV_VAR, 'true');
       tokenStorage = new MCPOAuthTokenStorage();
 
       vi.clearAllMocks();
@@ -370,6 +372,7 @@ describe('MCPOAuthTokenStorage', () => {
     });
 
     afterEach(() => {
+      vi.unstubAllEnvs();
       vi.restoreAllMocks();
     });
 
