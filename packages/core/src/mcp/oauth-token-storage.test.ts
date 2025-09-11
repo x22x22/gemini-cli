@@ -51,6 +51,7 @@ const mockHybridTokenStorage = {
   clearAll: vi.fn(),
   getAllCredentials: vi.fn(),
 };
+const ONE_HR_MS = 3600000;
 
 describe('MCPOAuthTokenStorage', () => {
   let tokenStorage: MCPOAuthTokenStorage;
@@ -60,7 +61,7 @@ describe('MCPOAuthTokenStorage', () => {
     refreshToken: 'refresh_token_456',
     tokenType: 'Bearer',
     scope: 'read write',
-    expiresAt: Date.now() + 3600000, // 1 hour from now
+    expiresAt: Date.now() + ONE_HR_MS,
   };
 
   const mockCredentials: OAuthCredentials = {
@@ -80,7 +81,7 @@ describe('MCPOAuthTokenStorage', () => {
       tokenStorage = new MCPOAuthTokenStorage();
 
       vi.clearAllMocks();
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error');
     });
 
     afterEach(() => {
@@ -169,11 +170,14 @@ describe('MCPOAuthTokenStorage', () => {
         );
         vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
-        const newToken: OAuthToken = { ...mockToken, accessToken: 'new_access_token' };
+        const newToken: OAuthToken = {
+          ...mockToken,
+          accessToken: 'new_access_token',
+        };
         await tokenStorage.saveToken('existing-server', newToken);
 
         const writeCall = vi.mocked(fs.writeFile).mock.calls[0];
-        const savedData = JSON.parse(writeCall[1] as string);
+        const savedData = JSON.parse(writeCall[1] as string) as OAuthCredentials[];
 
         expect(savedData).toHaveLength(1);
         expect(savedData[0].token.accessToken).toBe('new_access_token');
@@ -302,7 +306,7 @@ describe('MCPOAuthTokenStorage', () => {
       it('should return false for valid token', () => {
         const futureToken: OAuthToken = {
           ...mockToken,
-          expiresAt: Date.now() + 3600000, // 1 hour from now
+          expiresAt: Date.now() + ONE_HR_MS,
         };
 
         const result = tokenStorage.isTokenExpired(futureToken);
@@ -313,7 +317,7 @@ describe('MCPOAuthTokenStorage', () => {
       it('should return true for expired token', () => {
         const expiredToken: OAuthToken = {
           ...mockToken,
-          expiresAt: Date.now() - 3600000, // 1 hour ago
+          expiresAt: Date.now() - ONE_HR_MS,
         };
 
         const result = tokenStorage.isTokenExpired(expiredToken);
@@ -373,7 +377,7 @@ describe('MCPOAuthTokenStorage', () => {
       tokenStorage = new MCPOAuthTokenStorage();
 
       vi.clearAllMocks();
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(console, 'error');
     });
 
     afterEach(() => {
