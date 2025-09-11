@@ -19,6 +19,7 @@ import { getIdeProcessInfo } from './process-utils.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { EnvHttpProxyAgent } from 'undici';
@@ -237,6 +238,30 @@ export class IdeClient {
             filePath,
             newContent,
           },
+        })
+        .then((result) => {
+          const parsedResult = CallToolResultSchema.safeParse(result);
+          if (!parsedResult.success) {
+            const err = new Error('Failed to parse tool result from IDE');
+            logger.debug(err, parsedResult.error);
+            this.diffResponses.delete(filePath);
+            reject(err);
+            return;
+          }
+
+          if (parsedResult.data.isError) {
+            const textPart = parsedResult.data.content.find(
+              (part) => part.type === 'text',
+            );
+            const errorMessage =
+              textPart?.text ?? `Tool 'openDiff' reported an error.`;
+            logger.debug(
+              `callTool for ${filePath} failed with isError:`,
+              errorMessage,
+            );
+            this.diffResponses.delete(filePath);
+            reject(new Error(errorMessage));
+          }
         })
         .catch((err) => {
           logger.debug(`callTool for ${filePath} failed:`, err);

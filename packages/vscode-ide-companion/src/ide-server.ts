@@ -346,14 +346,7 @@ const createMcpServer = (diffManager: DiffManager) => {
     },
     async ({ filePath, newContent }: z.infer<typeof OpenDiffRequestSchema>) => {
       await diffManager.showDiff(filePath, newContent);
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `Showing diff for ${filePath}`,
-          },
-        ],
-      };
+      return { content: [] };
     },
   );
   server.registerTool(
