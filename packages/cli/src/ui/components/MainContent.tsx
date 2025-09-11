@@ -55,7 +55,9 @@ export const MainContent = () => {
               terminalWidth={mainAreaWidth}
               item={{ ...item, id: 0 }}
               isPending={true}
-              isFocused={isFocused && !uiState.isEditorDialogOpen}
+              isFocused={!uiState.isEditorDialogOpen}
+              activeShellPtyId={uiState.activePtyId}
+              shellFocused={uiState.shellFocused}
             />
           ))}
           <ShowMoreLines constrainHeight={uiState.constrainHeight} />
