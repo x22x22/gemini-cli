@@ -43,6 +43,17 @@ function getPlatformArch() {
 
 const platformArch = getPlatformArch();
 
+/**
+ * @typedef {{
+ *   check: string;
+ *   installer: string;
+ *   run: string;
+ * }} Linter
+ */
+
+/**
+ * @type {{[linterName: string]: Linter}}
+ */
 const LINTERS = {
   actionlint: {
     check: 'command -v actionlint',
@@ -85,6 +96,7 @@ const LINTERS = {
     run: "git ls-files | grep -E '\\.(yaml|yml)' | xargs yamllint --format github",
   },
 };
+
 
 function runCommand(command, stdio = 'inherit') {
   try {
