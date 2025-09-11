@@ -44,12 +44,9 @@ async function updateAction(context: CommandContext, args: string) {
   }
 
   try {
-    context.ui.addItem(
-      {
-        type: MessageType.EXTENSIONS_LIST,
-      },
-      Date.now(),
-    );
+    context.ui.setPendingItem({
+      type: MessageType.EXTENSIONS_LIST,
+    });
     if (all) {
       updateInfos = await updateAllUpdatableExtensions(
         context.services.config!.getWorkingDir(),
@@ -92,6 +89,14 @@ async function updateAction(context: CommandContext, args: string) {
       },
       Date.now(),
     );
+  } finally {
+    context.ui.addItem(
+      {
+        type: MessageType.EXTENSIONS_LIST,
+      },
+      Date.now(),
+    );
+    context.ui.setPendingItem(null);
   }
 }
 
