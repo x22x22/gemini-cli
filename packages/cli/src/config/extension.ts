@@ -640,6 +640,7 @@ export async function updateExtension(
     console.error(
       `Error updating extension, rolling back. ${getErrorMessage(e)}`,
     );
+    setExtensionUpdateState(ExtensionUpdateState.ERROR);
     await copyExtension(tempDir, extension.path);
     throw e;
   } finally {
