@@ -124,7 +124,7 @@ export async function performWorkspaceExtensionMigration(
 }
 
 function getClearcutLogger(cwd: string) {
-    const config = new Config({
+  const config = new Config({
     sessionId: randomUUID(),
     targetDir: cwd,
     cwd,
@@ -542,12 +542,9 @@ export async function uninstallExtension(
     recursive: true,
     force: true,
   });
-      logger?.logExtensionUninstallEvent(
-      new ExtensionUninstallEvent(
-        extensionName,
-        'success',
-      ),
-    );
+  logger?.logExtensionUninstallEvent(
+    new ExtensionUninstallEvent(extensionName, 'success'),
+  );
 }
 
 export function toOutputString(extension: Extension): string {

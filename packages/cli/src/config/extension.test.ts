@@ -74,11 +74,13 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
   const actual =
     await importOriginal<typeof import('@google/gemini-cli-core')>();
   const mockLogExtensionInstallEvent = vi.fn();
+  const mockLogExtensionUninstallEvent = vi.fn();
   return {
     ...actual,
     ClearcutLogger: {
       getInstance: vi.fn(() => ({
         logExtensionInstallEvent: mockLogExtensionInstallEvent,
+        logExtensionUninstallEvent: mockLogExtensionUninstallEvent,
       })),
     },
     Config: vi.fn(),
@@ -623,6 +625,19 @@ describe('uninstallExtension', () => {
     await expect(uninstallExtension('nonexistent-extension')).rejects.toThrow(
       'Extension "nonexistent-extension" not found.',
     );
+  });
+
+  it('should log uninstall event', async () => {
+    createExtension({
+      extensionsDir: userExtensionsDir,
+      name: 'my-local-extension',
+      version: '1.0.0',
+    });
+
+    await uninstallExtension('my-local-extension');
+
+    const logger = ClearcutLogger.getInstance({} as Config);
+    expect(logger?.logExtensionUninstallEvent).toHaveBeenCalled();
   });
 });
 

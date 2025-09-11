@@ -598,10 +598,7 @@ export class ExtensionUninstallEvent implements BaseTelemetryEvent {
   extension_name: string;
   status: 'success' | 'error';
 
-  constructor(
-    extension_name: string,
-    status: 'success' | 'error',
-  ) {
+  constructor(extension_name: string, status: 'success' | 'error') {
     this['event.name'] = 'extension_uninstall';
     this['event.timestamp'] = new Date().toISOString();
     this.extension_name = extension_name;
