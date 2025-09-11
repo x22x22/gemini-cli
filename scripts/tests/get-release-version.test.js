@@ -105,5 +105,16 @@ describe('getReleaseVersion', () => {
       expect(result.npmTag).toBe('preview');
       expect(result.previousReleaseTag).toBe(latestPreview);
     });
+
+    it('should default patch to 0 if missing in stable release', () => {
+      const latestStable = 'v0.5';
+      vi.mocked(execSync).mockReturnValue(latestStable);
+
+      const result = getVersion({ type: 'patch', patchFrom: 'stable' });
+
+      expect(result.releaseVersion).toBe('0.5.1');
+      expect(result.npmTag).toBe('latest');
+      expect(result.previousReleaseTag).toBe(latestStable);
+    });
   });
 });

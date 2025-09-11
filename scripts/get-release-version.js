@@ -83,10 +83,11 @@ export function getVersion(options = {}) {
       previousReleaseTag = getLatestTag(
         '(contains("nightly") or contains("preview")) | not',
       );
-      const [major, minor, patch] = previousReleaseTag
-        .replace(/^v/, '')
-        .split('.');
-      releaseVersion = `${major}.${minor}.${parseInt(patch) + 1}`;
+      const versionParts = previousReleaseTag.replace(/^v/, '').split('.');
+      const major = versionParts[0];
+      const minor = versionParts[1];
+      const patch = versionParts[2] ? parseInt(versionParts[2]) : 0;
+      releaseVersion = `${major}.${minor}.${patch + 1}`;
       npmTag = 'latest';
     } else {
       // patchFrom === 'preview'
@@ -94,8 +95,11 @@ export function getVersion(options = {}) {
       const [version, prerelease] = previousReleaseTag
         .replace(/^v/, '')
         .split('-');
-      const [major, minor, patch] = version.split('.');
-      releaseVersion = `${major}.${minor}.${parseInt(patch) + 1}-${prerelease}`;
+      const versionParts = version.split('.');
+      const major = versionParts[0];
+      const minor = versionParts[1];
+      const patch = versionParts[2] ? parseInt(versionParts[2]) : 0;
+      releaseVersion = `${major}.${minor}.${patch + 1}-${prerelease}`;
       npmTag = 'preview';
     }
   }
