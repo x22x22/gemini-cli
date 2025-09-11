@@ -34,7 +34,7 @@ export async function handleUpdate(args: UpdateArgs) {
 
   if (args.all) {
     try {
-      const updateInfos = await updateAllUpdatableExtensions(
+      let updateInfos = await updateAllUpdatableExtensions(
         workingDir,
         extensions,
         await checkForAllExtensionUpdates(extensions, (_) => {}),
