@@ -878,7 +878,7 @@ export class ClearcutLogger {
     ];
 
     this.enqueueLogEvent(
-      this.createLogEvent(EventNames.EXTENSION_INSTALL, data),
+      this.createLogEvent(EventNames.EXTENSION_UNINSTALL, data),
     );
     this.flushIfNeeded();
   }
