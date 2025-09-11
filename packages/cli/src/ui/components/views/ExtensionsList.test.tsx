@@ -48,7 +48,7 @@ describe('<ExtensionsList />', () => {
       }),
       extensionsUpdateState,
       // Add other required properties from UIState if needed by the component
-    } as any);
+    } as never);
   };
 
   it('should render "No extensions installed." if there are no extensions', () => {

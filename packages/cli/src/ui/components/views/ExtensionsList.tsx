@@ -43,6 +43,7 @@ export const ExtensionsList = () => {
               stateColor = 'red';
               break;
             case ExtensionUpdateState.UP_TO_DATE:
+            case ExtensionUpdateState.NOT_UPDATABLE:
               stateColor = 'green';
               break;
             default:
