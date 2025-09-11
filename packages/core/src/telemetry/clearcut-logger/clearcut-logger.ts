@@ -59,6 +59,7 @@ export enum EventNames {
   CONTENT_RETRY = 'content_retry',
   CONTENT_RETRY_FAILURE = 'content_retry_failure',
   EXTENSION_INSTALL = 'extension_install',
+  EXTENSION_UNINSTALL = 'extension_uninstall',
   TOOL_OUTPUT_TRUNCATED = 'tool_output_truncated',
 }
 
@@ -838,6 +839,32 @@ export class ClearcutLogger {
   }
 
   logExtensionInstallEvent(event: ExtensionInstallEvent): void {
+    const data: EventValue[] = [
+      {
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_NAME,
+        value: event.extension_name,
+      },
+      {
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_VERSION,
+        value: event.extension_version,
+      },
+      {
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_SOURCE,
+        value: event.extension_source,
+      },
+      {
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_INSTALL_STATUS,
+        value: event.status,
+      },
+    ];
+
+    this.enqueueLogEvent(
+      this.createLogEvent(EventNames.EXTENSION_INSTALL, data),
+    );
+    this.flushIfNeeded();
+  }
+
+  logExtensionUninstallEvent(event: ExtensionInstallEvent): void {
     const data: EventValue[] = [
       {
         gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_NAME,
