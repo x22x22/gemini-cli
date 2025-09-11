@@ -112,7 +112,7 @@ export const useGeminiStream = (
   const turnCancelledRef = useRef(false);
   const [isResponding, setIsResponding] = useState<boolean>(false);
   const [thought, setThought] = useState<ThoughtSummary | null>(null);
-  const [pendingHistoryItemRef, setPendingHistoryItem] =
+  const [pendingHistoryItem, pendingHistoryItemRef, setPendingHistoryItem] =
     useStateAndRef<HistoryItemWithoutId | null>(null);
   const processedMemoryToolsRef = useRef<Set<string>>(new Set());
   const { startNewPrompt, getPromptCount } = useSessionStats();
@@ -971,10 +971,10 @@ export const useGeminiStream = (
 
   const pendingHistoryItems = useMemo(
     () =>
-      [pendingHistoryItemRef.current, pendingToolCallGroupDisplay].filter(
+      [pendingHistoryItem, pendingToolCallGroupDisplay].filter(
         (i) => i !== undefined && i !== null,
       ),
-    [pendingHistoryItemRef, pendingToolCallGroupDisplay],
+    [pendingHistoryItem, pendingToolCallGroupDisplay],
   );
 
   useEffect(() => {

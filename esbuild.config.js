@@ -42,7 +42,7 @@ esbuild
     define: {
       'process.env.CLI_VERSION': JSON.stringify(pkg.version),
       'process.env.NODE_ENV': JSON.stringify(
-        process.env.NODE_ENV || 'production'
+        process.env.NODE_ENV || 'production',
       ),
     },
     banner: {
