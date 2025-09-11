@@ -443,6 +443,7 @@ describe('installExtension', () => {
   let userExtensionsDir: string;
 
   beforeEach(() => {
+    mockQuestion.mockImplementation((_query, callback) => callback('y'));
     tempHomeDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'gemini-cli-test-home-'),
     );
@@ -457,6 +458,8 @@ describe('installExtension', () => {
   });
 
   afterEach(() => {
+    mockQuestion.mockClear();
+    mockClose.mockClear();
     fs.rmSync(tempHomeDir, { recursive: true, force: true });
     fs.rmSync(userExtensionsDir, { recursive: true, force: true });
   });
@@ -598,8 +601,6 @@ describe('installExtension', () => {
       expect.stringContaining('Do you want to continue? (y/n)'),
       expect.any(Function),
     );
-    mockQuestion.mockClear();
-    mockClose.mockClear();
   });
 
   it('should cancel installation if user declines prompt for local extension with mcp servers', async () => {
@@ -625,8 +626,6 @@ describe('installExtension', () => {
       expect.stringContaining('Do you want to continue? (y/n)'),
       expect.any(Function),
     );
-    mockQuestion.mockClear();
-    mockClose.mockClear();
   });
 });
 
@@ -768,6 +767,7 @@ describe('performWorkspaceExtensionMigration', () => {
   });
 
   it('should install the extensions in the user directory', async () => {
+    mockQuestion.mockImplementation((_query, callback) => callback('y'));
     const ext1Path = createExtension({
       extensionsDir: workspaceExtensionsDir,
       name: 'ext1',
@@ -791,6 +791,7 @@ describe('performWorkspaceExtensionMigration', () => {
     const userExt1Path = path.join(userExtensionsDir, 'ext1');
     const extensions = loadExtensions();
 
+    mockQuestion.mockClear();
     expect(extensions).toHaveLength(2);
     const metadataPath = path.join(userExt1Path, INSTALL_METADATA_FILENAME);
     expect(fs.existsSync(metadataPath)).toBe(true);
@@ -802,6 +803,7 @@ describe('performWorkspaceExtensionMigration', () => {
   });
 
   it('should return the names of failed installations', async () => {
+    mockQuestion.mockImplementation((_query, callback) => callback('y'));
     const ext1Path = createExtension({
       extensionsDir: workspaceExtensionsDir,
       name: 'ext1',
@@ -819,6 +821,7 @@ describe('performWorkspaceExtensionMigration', () => {
 
     const failed = await performWorkspaceExtensionMigration(extensions);
     expect(failed).toEqual(['ext2']);
+    mockQuestion.mockClear();
   });
 });
 
