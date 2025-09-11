@@ -112,7 +112,7 @@ vi.mock('./useStateAndRef.js', () => ({
       }
       ref.current = val;
     });
-    return [ref, setVal];
+    return [val, ref, setVal];
   }),
 }));
 
@@ -1786,6 +1786,9 @@ describe('useGeminiStream', () => {
           () => {},
           () => {},
           () => {},
+          () => {},
+          80,
+          24,
         ),
       );
 
