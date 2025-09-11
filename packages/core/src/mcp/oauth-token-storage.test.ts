@@ -160,7 +160,7 @@ describe('MCPOAuthTokenStorage', () => {
       });
 
       it('should update existing token for same server', async () => {
-        const existingCredentials = {
+        const existingCredentials: OAuthCredentials = {
           ...mockCredentials,
           serverName: 'existing-server',
         };
@@ -169,7 +169,7 @@ describe('MCPOAuthTokenStorage', () => {
         );
         vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
-        const newToken = { ...mockToken, accessToken: 'new_access_token' };
+        const newToken: OAuthToken = { ...mockToken, accessToken: 'new_access_token' };
         await tokenStorage.saveToken('existing-server', newToken);
 
         const writeCall = vi.mocked(fs.writeFile).mock.calls[0];
@@ -228,8 +228,14 @@ describe('MCPOAuthTokenStorage', () => {
 
     describe('deleteCredentials', () => {
       it('should remove token for specific server', async () => {
-        const credentials1 = { ...mockCredentials, serverName: 'server1' };
-        const credentials2 = { ...mockCredentials, serverName: 'server2' };
+        const credentials1: OAuthCredentials = {
+          ...mockCredentials,
+          serverName: 'server1',
+        };
+        const credentials2: OAuthCredentials = {
+          ...mockCredentials,
+          serverName: 'server2',
+        };
         vi.mocked(fs.readFile).mockResolvedValue(
           JSON.stringify([credentials1, credentials2]),
         );
@@ -285,7 +291,7 @@ describe('MCPOAuthTokenStorage', () => {
 
     describe('isTokenExpired', () => {
       it('should return false for token without expiry', () => {
-        const tokenWithoutExpiry = { ...mockToken };
+        const tokenWithoutExpiry: OAuthToken = { ...mockToken };
         delete tokenWithoutExpiry.expiresAt;
 
         const result = tokenStorage.isTokenExpired(tokenWithoutExpiry);
@@ -294,7 +300,7 @@ describe('MCPOAuthTokenStorage', () => {
       });
 
       it('should return false for valid token', () => {
-        const futureToken = {
+        const futureToken: OAuthToken = {
           ...mockToken,
           expiresAt: Date.now() + 3600000, // 1 hour from now
         };
@@ -305,7 +311,7 @@ describe('MCPOAuthTokenStorage', () => {
       });
 
       it('should return true for expired token', () => {
-        const expiredToken = {
+        const expiredToken: OAuthToken = {
           ...mockToken,
           expiresAt: Date.now() - 3600000, // 1 hour ago
         };
@@ -316,7 +322,7 @@ describe('MCPOAuthTokenStorage', () => {
       });
 
       it('should return true for token expiring within buffer time', () => {
-        const soonToExpireToken = {
+        const soonToExpireToken: OAuthToken = {
           ...mockToken,
           expiresAt: Date.now() + 60000, // 1 minute from now (within 5-minute buffer)
         };
