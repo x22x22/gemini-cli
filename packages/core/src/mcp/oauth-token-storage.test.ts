@@ -4,19 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-  type Mock,
-} from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
 import * as path from 'node:path';
 import { MCPOAuthTokenStorage } from './oauth-token-storage.js';
-import { HybridTokenStorage } from './token-storage/hybrid-token-storage.js';
 import { FORCE_ENCRYPTED_FILE_ENV_VAR } from './token-storage/index.js';
 import type { OAuthCredentials, OAuthToken } from './token-storage/types.js';
 
@@ -41,8 +32,6 @@ vi.mock('../config/storage.js', () => ({
   },
 }));
 
-vi.mock('./token-storage/hybrid-token-storage.js');
-
 const mockHybridTokenStorage = {
   listServers: vi.fn(),
   setCredentials: vi.fn(),
@@ -51,6 +40,10 @@ const mockHybridTokenStorage = {
   clearAll: vi.fn(),
   getAllCredentials: vi.fn(),
 };
+vi.mock('./token-storage/hybrid-token-storage.js', () => ({
+  HybridTokenStorage: vi.fn(() => mockHybridTokenStorage),
+}));
+
 const ONE_HR_MS = 3600000;
 
 describe('MCPOAuthTokenStorage', () => {
@@ -75,9 +68,6 @@ describe('MCPOAuthTokenStorage', () => {
   describe('with encrypted flag false', () => {
     beforeEach(() => {
       process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'false';
-      (HybridTokenStorage as Mock).mockImplementation(
-        () => mockHybridTokenStorage,
-      );
       tokenStorage = new MCPOAuthTokenStorage();
 
       vi.clearAllMocks();
@@ -177,7 +167,9 @@ describe('MCPOAuthTokenStorage', () => {
         await tokenStorage.saveToken('existing-server', newToken);
 
         const writeCall = vi.mocked(fs.writeFile).mock.calls[0];
-        const savedData = JSON.parse(writeCall[1] as string) as OAuthCredentials[];
+        const savedData = JSON.parse(
+          writeCall[1] as string,
+        ) as OAuthCredentials[];
 
         expect(savedData).toHaveLength(1);
         expect(savedData[0].token.accessToken).toBe('new_access_token');
@@ -371,9 +363,6 @@ describe('MCPOAuthTokenStorage', () => {
   describe('with encrypted flag true', () => {
     beforeEach(() => {
       process.env[FORCE_ENCRYPTED_FILE_ENV_VAR] = 'true';
-      (HybridTokenStorage as Mock).mockImplementation(
-        () => mockHybridTokenStorage,
-      );
       tokenStorage = new MCPOAuthTokenStorage();
 
       vi.clearAllMocks();
