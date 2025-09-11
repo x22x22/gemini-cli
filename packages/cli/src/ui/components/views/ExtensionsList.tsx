@@ -32,13 +32,12 @@ export const ExtensionsList = () => {
 
           switch (state) {
             case ExtensionUpdateState.CHECKING_FOR_UPDATES:
+            case ExtensionUpdateState.UPDATING:
               stateColor = 'cyan';
               break;
             case ExtensionUpdateState.UPDATE_AVAILABLE:
+            case ExtensionUpdateState.UPDATED_NEEDS_RESTART:
               stateColor = 'yellow';
-              break;
-            case ExtensionUpdateState.UPDATING:
-              stateColor = 'cyan';
               break;
             case ExtensionUpdateState.ERROR:
               stateColor = 'red';

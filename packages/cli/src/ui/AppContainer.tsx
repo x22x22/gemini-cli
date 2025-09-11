@@ -76,7 +76,7 @@ import { useWorkspaceMigration } from './hooks/useWorkspaceMigration.js';
 import { useSessionStats } from './contexts/SessionContext.js';
 import { useGitBranchName } from './hooks/useGitBranchName.js';
 import type { ExtensionUpdateState } from './state/extensions.js';
-import { checkForExtensionUpdates } from '../config/extension.js';
+import { checkForAllExtensionUpdates } from '../config/extension.js';
 
 const CTRL_EXIT_PROMPT_DURATION_MS = 1000;
 
@@ -1138,7 +1138,7 @@ Logging in with Google... Please restart Gemini CLI to continue.
 
   const extensions = config.getExtensions();
   useEffect(() => {
-    checkForExtensionUpdates(extensions, setExtensionsUpdateState);
+    checkForAllExtensionUpdates(extensions, setExtensionsUpdateState);
   }, [extensions, setExtensionsUpdateState]);
 
   return (

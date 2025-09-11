@@ -64,8 +64,11 @@ async function updateAction(context: CommandContext, args: string) {
             name,
             context.services.config!.getWorkingDir(),
             context.services.config!.getExtensions(),
-            context.ui.extensionsUpdateState,
-            context.ui.setExtensionsUpdateState,
+            (updateState) => {
+              const newState = new Map(context.ui.extensionsUpdateState);
+              newState.set(name, updateState);
+              context.ui.setExtensionsUpdateState(newState);
+            },
           ),
         );
       }

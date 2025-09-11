@@ -12,7 +12,7 @@ import {
   EXTENSIONS_CONFIG_FILENAME,
   INSTALL_METADATA_FILENAME,
   annotateActiveExtensions,
-  checkForExtensionUpdates,
+  checkForAllExtensionUpdates,
   disableExtension,
   enableExtension,
   ExtensionUpdateStatus,
@@ -888,7 +888,7 @@ describe('checkForExtensionUpdates', () => {
     mockGit.listRemote.mockResolvedValue('remoteHash	HEAD');
     mockGit.revparse.mockResolvedValue('localHash');
 
-    const results = await checkForExtensionUpdates([extension]);
+    const results = await checkForAllExtensionUpdates([extension]);
     const result = results.get('test-extension');
     expect(result?.status).toBe(ExtensionUpdateStatus.UpdateAvailable);
   });
@@ -911,7 +911,7 @@ describe('checkForExtensionUpdates', () => {
     mockGit.listRemote.mockResolvedValue('sameHash	HEAD');
     mockGit.revparse.mockResolvedValue('sameHash');
 
-    const results = await checkForExtensionUpdates([extension]);
+    const results = await checkForAllExtensionUpdates([extension]);
     const result = results.get('test-extension');
     expect(result?.status).toBe(ExtensionUpdateStatus.UpToDate);
   });
@@ -925,7 +925,7 @@ describe('checkForExtensionUpdates', () => {
     const extension = loadExtension(extensionDir)!;
     extension.installMetadata = { source: '/local/path', type: 'local' };
 
-    const results = await checkForExtensionUpdates([extension]);
+    const results = await checkForAllExtensionUpdates([extension]);
     const result = results.get('local-extension');
     expect(result?.status).toBe(ExtensionUpdateStatus.NotUpdatable);
   });
@@ -944,7 +944,7 @@ describe('checkForExtensionUpdates', () => {
 
     mockGit.getRemotes.mockRejectedValue(new Error('Git error'));
 
-    const results = await checkForExtensionUpdates([extension]);
+    const results = await checkForAllExtensionUpdates([extension]);
     const result = results.get('error-extension');
     expect(result?.status).toBe(ExtensionUpdateStatus.Error);
     expect(result?.error).toContain('Failed to check for updates');

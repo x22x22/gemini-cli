@@ -11,6 +11,7 @@ import {
   type ExtensionUpdateInfo,
   loadExtensions,
   annotateActiveExtensions,
+  checkForAllExtensionUpdates,
 } from '../../config/extension.js';
 import { getErrorMessage } from '../../utils/errors.js';
 
@@ -30,12 +31,13 @@ export async function handleUpdate(args: UpdateArgs) {
     allExtensions.map((e) => e.config.name),
     workingDir,
   );
+
   if (args.all) {
     try {
       const updateInfos = await updateAllUpdatableExtensions(
         workingDir,
         extensions,
-        new Map(),
+        await checkForAllExtensionUpdates(extensions, (_) => {}),
         () => {},
       );
       updateInfos.filter(
@@ -57,7 +59,6 @@ export async function handleUpdate(args: UpdateArgs) {
         args.name,
         workingDir,
         extensions,
-        new Map(),
         () => {},
       );
       if (
