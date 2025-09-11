@@ -14,6 +14,7 @@ import {
   ClearcutLogger,
   Config,
   ExtensionInstallEvent,
+  ExtensionUninstallEvent,
 } from '@google/gemini-cli-core';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -536,20 +537,14 @@ export async function uninstallExtension(
     cwd,
   );
   const storage = new ExtensionStorage(extensionName);
-  const extension = loadExtension(storage.getExtensionDir());
-  const extensionConfig = extension?.config;
-  const extensionInstallMetdata = extension?.installMetadata;
-  console.info({extension});
 
   await fs.promises.rm(storage.getExtensionDir(), {
     recursive: true,
     force: true,
   });
-      logger?.logExtensionInstallEvent(
-      new ExtensionInstallEvent(
+      logger?.logExtensionUninstallEvent(
+      new ExtensionUninstallEvent(
         extensionName,
-        extensionConfig?.version ??'',
-        extensionInstallMetdata?.source ??'',
         'success',
       ),
     );

@@ -26,6 +26,7 @@ import type {
   ContentRetryFailureEvent,
   ExtensionInstallEvent,
   ToolOutputTruncatedEvent,
+  ExtensionUninstallEvent,
 } from '../types.js';
 import { EventMetadataKey } from './event-metadata-key.js';
 import type { Config } from '../../config/config.js';
@@ -864,22 +865,14 @@ export class ClearcutLogger {
     this.flushIfNeeded();
   }
 
-  logExtensionUninstallEvent(event: ExtensionInstallEvent): void {
+  logExtensionUninstallEvent(event: ExtensionUninstallEvent): void {
     const data: EventValue[] = [
       {
         gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_NAME,
         value: event.extension_name,
       },
       {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_VERSION,
-        value: event.extension_version,
-      },
-      {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_SOURCE,
-        value: event.extension_source,
-      },
-      {
-        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_INSTALL_STATUS,
+        gemini_cli_key: EventMetadataKey.GEMINI_CLI_EXTENSION_UNINSTALL_STATUS,
         value: event.status,
       },
     ];
