@@ -7,14 +7,14 @@
 import * as fs from 'node:fs';
 import { isSubpath } from '../utils/paths.js';
 import { detectIde, type DetectedIde, getIdeInfo } from '../ide/detect-ide.js';
+import { ideContextStore } from './ideContext.js';
 import {
-  ideContextStore,
+  IdeContextNotificationSchema,
   IdeDiffAcceptedNotificationSchema,
   IdeDiffClosedNotificationSchema,
+  IdeDiffRejectedNotificationSchema,
   CloseDiffResponseSchema,
-  type DiffUpdateResult,
-} from './ideContext.js';
-import { IdeContextNotificationSchema } from './types.js';
+} from './types.js';
 import { getIdeProcessInfo } from './process-utils.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -29,6 +29,16 @@ const logger = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: (...args: any[]) => console.error('[ERROR] [IDEClient]', ...args),
 };
+
+export type DiffUpdateResult =
+  | {
+      status: 'accepted';
+      content?: string;
+    }
+  | {
+      status: 'rejected';
+      content: undefined;
+    };
 
 export type IDEConnectionState = {
   status: IDEConnectionStatus;
@@ -191,22 +201,26 @@ export class IdeClient {
   }
 
   /**
-   * A diff is accepted with any modifications if the user performs one of the
-   * following actions:
-   * - Clicks the checkbox icon in the IDE to accept
-   * - Runs `command+shift+p` > "Gemini CLI: Accept Diff in IDE" to accept
-   * - Selects "accept" in the CLI UI
-   * - Saves the file via `ctrl/command+s`
+   * Opens a diff view in the IDE, allowing the user to review and accept or
+   * reject changes.
    *
-   * A diff is rejected if the user performs one of the following actions:
-   * - Clicks the "x" icon in the IDE
-   * - Runs "Gemini CLI: Close Diff in IDE"
-   * - Selects "no" in the CLI UI
-   * - Closes the file
+   * This method sends a request to the IDE to display a diff between the
+   * current content of a file and the new content provided. It then waits for
+   * a notification from the IDE indicating that the user has either accepted
+   * (potentially with manual edits) or rejected the diff.
+   *
+   * A mutex ensures that only one diff view can be open at a time to prevent
+   * race conditions.
+   *
+   * @param filePath The absolute path to the file to be diffed.
+   * @param newContent The proposed new content for the file.
+   * @returns A promise that resolves with a `DiffUpdateResult`, indicating
+   *   whether the diff was 'accepted' or 'rejected' and including the final
+   *   content if accepted.
    */
   async openDiff(
     filePath: string,
-    newContent?: string,
+    newContent: string,
   ): Promise<DiffUpdateResult> {
     const release = await this.acquireMutex();
 
@@ -599,6 +613,22 @@ export class IdeClient {
       },
     );
 
+    this.client.setNotificationHandler(
+      IdeDiffRejectedNotificationSchema,
+      (notification) => {
+        const { filePath } = notification.params;
+        const resolver = this.diffResponses.get(filePath);
+        if (resolver) {
+          resolver({ status: 'rejected', content: undefined });
+          this.diffResponses.delete(filePath);
+        } else {
+          logger.debug(`No resolver found for ${filePath}`);
+        }
+      },
+    );
+
+    // For backwards compatability. Newer extension versions will only send
+    // IdeDiffRejectedNotificationSchema.
     this.client.setNotificationHandler(
       IdeDiffClosedNotificationSchema,
       (notification) => {

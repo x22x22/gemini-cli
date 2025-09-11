@@ -34,7 +34,7 @@ import {
 import { createMockWorkspaceContext } from '../test-utils/mockWorkspaceContext.js';
 import { StandardFileSystemService } from '../services/fileSystemService.js';
 import { IdeClient, IDEConnectionStatus } from '../ide/ide-client.js';
-import type { DiffUpdateResult } from '../ide/ideContext.js';
+import type { DiffUpdateResult } from '../ide/ide-client.js';
 
 const rootDir = path.resolve(os.tmpdir(), 'gemini-cli-test-root');
 

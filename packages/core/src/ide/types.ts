@@ -63,8 +63,105 @@ export const IdeContextSchema = z.object({
 });
 export type IdeContext = z.infer<typeof IdeContextSchema>;
 
+/**
+ * A notification that the IDE context has been updated.
+ */
 export const IdeContextNotificationSchema = z.object({
   jsonrpc: z.literal('2.0'),
   method: z.literal('ide/contextUpdate'),
   params: IdeContextSchema,
+});
+
+/**
+ * A notification that a diff has been accepted in the IDE.
+ */
+export const IdeDiffAcceptedNotificationSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  method: z.literal('ide/diffAccepted'),
+  params: z.object({
+    /**
+     * The absolute path to the file that was diffed.
+     */
+    filePath: z.string(),
+    /**
+     * The full content of the file after the diff was accepted, which includes any manual edits the user may have made.
+     */
+    content: z.string(),
+  }),
+});
+
+/**
+ * A notification that a diff has been rejected in the IDE.
+ */
+export const IdeDiffRejectedNotificationSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  method: z.literal('ide/diffRejected'),
+  params: z.object({
+    /**
+     * The absolute path to the file that was diffed.
+     */
+    filePath: z.string(),
+  }),
+});
+
+/**
+ * This is defineded for backwards compatability only. Newer extension versions
+ * will only send IdeDiffRejectedNotificationSchema.
+ *
+ * A notification that a diff has been closed in the IDE.
+ */
+export const IdeDiffClosedNotificationSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  method: z.literal('ide/diffClosed'),
+  params: z.object({
+    filePath: z.string(),
+    content: z.string().optional(),
+  }),
+});
+
+/**
+ * The response from a request to close a diff.
+ */
+export const CloseDiffResponseSchema = z
+  .object({
+    content: z
+      .array(
+        z.object({
+          text: z.string(),
+          type: z.literal('text'),
+        }),
+      )
+      .min(1),
+  })
+  .transform((val, ctx) => {
+    try {
+      const parsed = JSON.parse(val.content[0].text);
+      const innerSchema = z.object({ content: z.string().optional() });
+      const validationResult = innerSchema.safeParse(parsed);
+      if (!validationResult.success) {
+        validationResult.error.issues.forEach((issue) => ctx.addIssue(issue));
+        return z.NEVER;
+      }
+      return validationResult.data;
+    } catch (_) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Invalid JSON in text content',
+      });
+      return z.NEVER;
+    }
+  });
+
+/**
+ * The request to open a diff view in the IDE.
+ */
+export const OpenDiffRequestSchema = z.object({
+  /**
+   * The absolute path to the file to be diffed.
+   */
+  filePath: z.string(),
+  /**
+   * The proposed new content for the file.
+   */
+  newContent: z.string(),
 });

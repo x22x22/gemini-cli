@@ -5,7 +5,10 @@
  */
 
 import * as vscode from 'vscode';
-import { IdeContextNotificationSchema } from '@google/gemini-cli-core';
+import {
+  IdeContextNotificationSchema,
+  OpenDiffRequestSchema,
+} from '@google/gemini-cli-core';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -339,20 +342,10 @@ const createMcpServer = (diffManager: DiffManager) => {
     {
       description:
         '(IDE Tool) Open a diff view to create or modify a file. Returns a notification once the diff has been accepted or rejcted.',
-      inputSchema: z.object({
-        filePath: z.string(),
-        // TODO(chrstn): determine if this should be required or not.
-        newContent: z.string().optional(),
-      }).shape,
+      inputSchema: OpenDiffRequestSchema.shape,
     },
-    async ({
-      filePath,
-      newContent,
-    }: {
-      filePath: string;
-      newContent?: string;
-    }) => {
-      await diffManager.showDiff(filePath, newContent ?? '');
+    async ({ filePath, newContent }: z.infer<typeof OpenDiffRequestSchema>) => {
+      await diffManager.showDiff(filePath, newContent);
       return {
         content: [
           {
