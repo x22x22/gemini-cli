@@ -47,8 +47,10 @@ export function getVersion(options = {}) {
     const packageJson = JSON.parse(
       readFileSync(path.join(__dirname, '..', 'package.json'), 'utf-8'),
     );
-    const [major, minor] = packageJson.version.split('.');
-    const nextMinor = parseInt(minor) + 1;
+    const versionParts = packageJson.version.split('.');
+    const major = versionParts[0];
+    const minor = versionParts[1] ? parseInt(versionParts[1]) : 0;
+    const nextMinor = minor + 1;
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const gitShortHash = execSync('git rev-parse --short HEAD')
       .toString()

@@ -7,27 +7,10 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { getVersion } from '../get-release-version.js';
 import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 vi.mock('node:child_process');
 vi.mock('node:fs');
-
-vi.mock('../get-release-version.js', async () => {
-  const actual = await vi.importActual('../get-release-version.js');
-  return {
-    ...actual,
-    getVersion: (options) => {
-      if (options.type === 'nightly') {
-        return {
-          releaseTag: 'v0.6.0-nightly.20250911.a1b2c3d',
-          releaseVersion: '0.6.0-nightly.20250911.a1b2c3d',
-          npmTag: 'nightly',
-          previousReleaseTag: 'v0.5.0-nightly.20250910.abcdef',
-        };
-      }
-      return actual.getVersion(options);
-    },
-  };
-});
 
 describe('getReleaseVersion', () => {
   beforeEach(() => {
@@ -37,13 +20,36 @@ describe('getReleaseVersion', () => {
   });
 
   describe('Nightly Workflow Logic', () => {
-    it('should calculate the next nightly version based on package.json', async () => {
-      const { getVersion } = await import('../get-release-version.js');
+    it('should calculate the next nightly version based on package.json', () => {
+      vi.mocked(readFileSync).mockReturnValue('{"version": "0.5.0"}');
+      vi.mocked(execSync).mockImplementation((command) => {
+        if (command.includes('rev-parse')) return 'a1b2c3d';
+        if (command.includes('release list'))
+          return 'v0.5.0-nightly.20250910.abcdef';
+        return '';
+      });
+
       const result = getVersion({ type: 'nightly' });
 
       expect(result.releaseVersion).toBe('0.6.0-nightly.20250911.a1b2c3d');
       expect(result.npmTag).toBe('nightly');
       expect(result.previousReleaseTag).toBe('v0.5.0-nightly.20250910.abcdef');
+    });
+
+    it('should default minor to 0 if missing in package.json version', () => {
+      vi.mocked(readFileSync).mockReturnValue('{"version": "0"}');
+      vi.mocked(execSync).mockImplementation((command) => {
+        if (command.includes('rev-parse')) return 'a1b2c3d';
+        if (command.includes('release list'))
+          return 'v0.0.0-nightly.20250910.abcdef';
+        return '';
+      });
+
+      const result = getVersion({ type: 'nightly' });
+
+      expect(result.releaseVersion).toBe('0.1.0-nightly.20250911.a1b2c3d');
+      expect(result.npmTag).toBe('nightly');
+      expect(result.previousReleaseTag).toBe('v0.0.0-nightly.20250910.abcdef');
     });
   });
 
