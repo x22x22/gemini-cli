@@ -97,7 +97,6 @@ const LINTERS = {
   },
 };
 
-
 function runCommand(command, stdio = 'inherit') {
   try {
     const env = { ...process.env };
