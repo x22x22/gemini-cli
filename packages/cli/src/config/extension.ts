@@ -547,7 +547,7 @@ export async function uninstallExtension(
   });
       logger?.logExtensionInstallEvent(
       new ExtensionInstallEvent(
-        extensionConfig?.name ?? '',
+        extensionName,
         extensionConfig?.version ??'',
         extensionInstallMetdata?.source ??'',
         'success',
