@@ -62,6 +62,7 @@ import {
   RipgrepFallbackEvent,
 } from '../telemetry/types.js';
 import type { FallbackModelHandler } from '../fallback/types.js';
+import { OutputFormat } from '../output/types.js';
 
 // Re-export OAuth config type
 export type { MCPOAuthConfig, AnyToolInvocation };
@@ -70,6 +71,9 @@ import { WorkspaceContext } from '../utils/workspaceContext.js';
 import { Storage } from './storage.js';
 import { FileExclusions } from '../utils/ignorePatterns.js';
 import type { EventEmitter } from 'node:events';
+import { MessageBus } from '../confirmation-bus/message-bus.js';
+import { PolicyEngine } from '../policy/policy-engine.js';
+import type { PolicyEngineConfig } from '../policy/types.js';
 import type { UserTierId } from '../code_assist/types.js';
 import { ProxyAgent, setGlobalDispatcher } from 'undici';
 
@@ -103,6 +107,10 @@ export interface TelemetrySettings {
   otlpProtocol?: 'grpc' | 'http';
   logPrompts?: boolean;
   outfile?: string;
+}
+
+export interface OutputSettings {
+  format?: OutputFormat;
 }
 
 export interface GeminiCLIExtension {
@@ -228,6 +236,8 @@ export interface ConfigParameters {
   enableToolOutputTruncation?: boolean;
   eventEmitter?: EventEmitter;
   useSmartEdit?: boolean;
+  policyEngineConfig?: PolicyEngineConfig;
+  output?: OutputSettings;
 }
 
 export class Config {
@@ -310,6 +320,9 @@ export class Config {
   private readonly fileExclusions: FileExclusions;
   private readonly eventEmitter?: EventEmitter;
   private readonly useSmartEdit: boolean;
+  private readonly messageBus: MessageBus;
+  private readonly policyEngine: PolicyEngine;
+  private readonly outputSettings: OutputSettings;
 
   constructor(params: ConfigParameters) {
     this.sessionId = params.sessionId;
@@ -393,6 +406,11 @@ export class Config {
     this.enablePromptCompletion = params.enablePromptCompletion ?? false;
     this.fileExclusions = new FileExclusions(this);
     this.eventEmitter = params.eventEmitter;
+    this.policyEngine = new PolicyEngine(params.policyEngineConfig);
+    this.messageBus = new MessageBus(this.policyEngine);
+    this.outputSettings = {
+      format: params.output?.format ?? OutputFormat.TEXT,
+    };
 
     if (params.contextFileName) {
       setGeminiMdFilename(params.contextFileName);
@@ -880,6 +898,12 @@ export class Config {
     return this.useSmartEdit;
   }
 
+  getOutputFormat(): OutputFormat {
+    return this.outputSettings?.format
+      ? this.outputSettings.format
+      : OutputFormat.TEXT;
+  }
+
   async getGitService(): Promise<GitService> {
     if (!this.gitService) {
       this.gitService = new GitService(this.targetDir, this.storage);
@@ -890,6 +914,14 @@ export class Config {
 
   getFileExclusions(): FileExclusions {
     return this.fileExclusions;
+  }
+
+  getMessageBus(): MessageBus {
+    return this.messageBus;
+  }
+
+  getPolicyEngine(): PolicyEngine {
+    return this.policyEngine;
   }
 
   async createToolRegistry(): Promise<ToolRegistry> {
