@@ -18,12 +18,12 @@ on:
       dry_run:
         description: 'Run a dry-run of the release process; no branches, npm packages or GitHub releases will be created.'
         required: true
-        type: 'boolean'
+        type: boolean
         default: true
       force_skip_tests:
         description: 'Select to skip the "Run Tests" step in testing. Prod releases should run tests'
         required: false
-        type: 'boolean'
+        type: boolean
         default: false
 
 jobs:
@@ -48,17 +48,6 @@ jobs:
         with:
           ref: '${{ github.event.inputs.ref || github.sha }}'
           fetch-depth: 0
-
-      - name: 'Set booleans for simplified logic'
-        env:
-          DRY_RUN_INPUT: '${{ github.event.inputs.dry_run }}'
-        id: 'vars'
-        run: |-
-          is_dry_run="false"
-          if [[ "${DRY_RUN_INPUT}" == "true" ]]; then
-            is_dry_run="true"
-          fi
-          echo "is_dry_run=${is_dry_run}" >> "${GITHUB_OUTPUT}"
 
       - name: 'Setup Node.js'
         uses: 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020' # ratchet:actions/setup-node@v4
@@ -101,5 +90,5 @@ jobs:
           wombat-token-core: '${{ secrets.WOMBAT_TOKEN_CORE }}'
           wombat-token-cli: '${{ secrets.WOMBAT_TOKEN_CLI }}'
           github-token: '${{ secrets.GITHUB_TOKEN }}'
-          dry-run: '${{ steps.vars.outputs.is_dry_run }}'
+          dry-run: '${{ github.event.inputs.dry_run }}'
           previous-tag: '${{ steps.version.outputs.PREVIOUS_TAG }}'
