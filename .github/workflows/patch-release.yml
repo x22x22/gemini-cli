@@ -18,12 +18,12 @@ on:
       dry_run:
         description: 'Run a dry-run of the release process; no branches, npm packages or GitHub releases will be created.'
         required: true
-        type: boolean
+        type: 'boolean'
         default: true
       force_skip_tests:
         description: 'Select to skip the "Run Tests" step in testing. Prod releases should run tests'
         required: false
-        type: boolean
+        type: 'boolean'
         default: false
 
 jobs:
