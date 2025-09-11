@@ -9,12 +9,14 @@ import { HistoryItemDisplay } from './HistoryItemDisplay.js';
 import { ShowMoreLines } from './ShowMoreLines.js';
 import { OverflowProvider } from '../contexts/OverflowContext.js';
 import { useUIState } from '../contexts/UIStateContext.js';
+import { useFocusState } from '../contexts/FocusContext.js';
 import { useAppContext } from '../contexts/AppContext.js';
 import { AppHeader } from './AppHeader.js';
 
 export const MainContent = () => {
   const { version } = useAppContext();
   const uiState = useUIState();
+  const isFocused = useFocusState();
   const {
     pendingHistoryItems,
     mainAreaWidth,
@@ -53,7 +55,7 @@ export const MainContent = () => {
               terminalWidth={mainAreaWidth}
               item={{ ...item, id: 0 }}
               isPending={true}
-              isFocused={!uiState.isEditorDialogOpen}
+              isFocused={isFocused && !uiState.isEditorDialogOpen}
             />
           ))}
           <ShowMoreLines constrainHeight={uiState.constrainHeight} />

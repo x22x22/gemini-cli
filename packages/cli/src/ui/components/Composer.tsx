@@ -17,6 +17,7 @@ import { OverflowProvider } from '../contexts/OverflowContext.js';
 import { theme } from '../semantic-colors.js';
 import { isNarrowWidth } from '../utils/isNarrowWidth.js';
 import { useUIState } from '../contexts/UIStateContext.js';
+import { useFocusState } from '../contexts/FocusContext.js';
 import { useUIActions } from '../contexts/UIActionsContext.js';
 import { useVimMode } from '../contexts/VimModeContext.js';
 import { useConfig } from '../contexts/ConfigContext.js';
@@ -31,6 +32,7 @@ export const Composer = () => {
   const config = useConfig();
   const settings = useSettings();
   const uiState = useUIState();
+  const isFocused = useFocusState();
   const uiActions = useUIActions();
   const { vimEnabled, vimMode } = useVimMode();
   const terminalWidth = process.stdout.columns;
@@ -175,7 +177,7 @@ export const Composer = () => {
           shellModeActive={uiState.shellModeActive}
           setShellModeActive={uiActions.setShellModeActive}
           onEscapePromptChange={uiActions.onEscapePromptChange}
-          focus={uiState.isFocused}
+          focus={isFocused}
           vimHandleInput={uiActions.vimHandleInput}
           placeholder={
             vimEnabled
