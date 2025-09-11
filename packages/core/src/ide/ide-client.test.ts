@@ -330,7 +330,7 @@ describe('IdeClient', () => {
 
       expect(result).toEqual(config);
       expect(fs.promises.readFile).toHaveBeenCalledWith(
-        path.join('/tmp/.gemini/ide', 'gemini-ide-server-12345-123.json'),
+        path.join('/tmp/gemini/ide', 'gemini-ide-server-12345-123.json'),
         'utf8',
       );
     });
@@ -525,11 +525,11 @@ describe('IdeClient', () => {
 
       expect(result).toEqual(validConfig);
       expect(fs.promises.readFile).toHaveBeenCalledWith(
-        path.join('/tmp/.gemini/ide', 'gemini-ide-server-12345-111.json'),
+        path.join('/tmp/gemini/ide', 'gemini-ide-server-12345-111.json'),
         'utf8',
       );
       expect(fs.promises.readFile).not.toHaveBeenCalledWith(
-        path.join('/tmp/.gemini/ide', 'not-a-config-file.txt'),
+        path.join('/tmp/gemini/ide', 'not-a-config-file.txt'),
         'utf8',
       );
     });
