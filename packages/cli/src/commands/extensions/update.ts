@@ -40,7 +40,7 @@ export async function handleUpdate(args: UpdateArgs) {
         await checkForAllExtensionUpdates(extensions, (_) => {}),
         () => {},
       );
-      updateInfos.filter(
+      updateInfos = updateInfos.filter(
         (info) => info.originalVersion !== info.updatedVersion,
       );
       if (updateInfos.length === 0) {
