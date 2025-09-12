@@ -85,7 +85,12 @@ export function SuggestionsDisplay({
               <Box>
                 {labelElement}
                 {suggestion.commandKind === CommandKind.MCP_PROMPT && (
-                  <Text color={theme.text.secondary}> [MCP]</Text>
+                  <Text
+                    color={isActive ? theme.text.accent : theme.text.secondary}
+                  >
+                    {' '}
+                    [MCP]
+                  </Text>
                 )}
               </Box>
             </Box>
